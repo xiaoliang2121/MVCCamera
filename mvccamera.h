@@ -23,6 +23,8 @@ public:
 
 public slots:
     void onConnectActionTriggered();
+    void onShowAboutDlg();
+
     void onStartCapActionTriggered();
     void onPauseCapActionTriggered();
     void onStopCapActionTriggered();
@@ -35,8 +37,8 @@ private:
 
     QAction *connectAction;
     QAction *aboutAction;
-    QAction *exitAction;
 
+    QAction *exitAction;
     QAction *startCapAction;
     QAction *pauseCapAction;
     QAction *stopCapAction;

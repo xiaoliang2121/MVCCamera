@@ -12,14 +12,19 @@ MVCCamera::MVCCamera(QWidget *parent) :
 
     connectAction = new QAction(tr("连接"),this);
     connectAction->setStatusTip("通过USB2.0连接到相机");
-    connect(connectAction,&QAction::triggered,this,&MVCCamera::onConnectActionTriggered);
+    connect(connectAction,&QAction::triggered,this,\
+            &MVCCamera::onConnectActionTriggered);
 
     aboutAction = new QAction(tr("关于MVC_CAMERA程序"));
-    aboutAction->setStatusTip("相关内容");
+    aboutAction->setStatusTip("程序相关");
+    connect(aboutAction,&QAction::triggered,\
+            this,&MVCCamera::onShowAboutDlg);
 
-
-    auto connectMenu = menuBar()->addMenu(tr("USB2.0连接"));
+    QMenu *connectMenu = menuBar()->addMenu(tr("USB2.0连接"));
     connectMenu->addAction(connectAction);
+    QMenu *helpMenu = menuBar()->addMenu("帮助");
+    helpMenu->addAction(aboutAction);
+
 }
 
 MVCCamera::~MVCCamera()
@@ -48,15 +53,23 @@ void MVCCamera::setNewMenu()
     connect(pauseCapAction,&QAction::triggered,\
             this,&MVCCamera::onPauseCapActionTriggered);
 
-    stopCapAction = new QAction(tr("停止相机"),this);
+    stopCapAction = new QAction(tr("停止"),this);
     stopCapAction->setStatusTip("停止相机，以及一些收尾工作");
     connect(stopCapAction,&QAction::triggered,\
             this,&MVCCamera::onStopCapActionTriggered);
+
+    exitAction = new QAction(tr("退出程序"),this);\
+    exitAction->setStatusTip("退出本程序");
+    connect(exitAction,&QAction::triggered,\
+            this,&MVCCamera::close);
 
     QMenu *operation = menuBar()->addMenu(tr("操作"));
     operation->addAction(startCapAction);
     operation->addAction(pauseCapAction);
     operation->addAction(stopCapAction);
+    operation->addSeparator();
+    operation->addAction(exitAction);
+
 }
 
 void MVCCamera::onConnectActionTriggered()
@@ -80,6 +93,11 @@ void MVCCamera::onConnectActionTriggered()
 //    MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
 //    MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
 //        setText("USB相机初始化成功");
+
+}
+
+void MVCCamera::onShowAboutDlg()
+{
 
 }
 
