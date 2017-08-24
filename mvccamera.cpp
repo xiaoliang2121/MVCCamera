@@ -9,7 +9,10 @@ MVCCamera::MVCCamera(QWidget *parent) :
     ui(new Ui::MVCCamera)
 {
     ui->setupUi(this);
+
+    // 参数初始化
     m_hMVC3000 = NULL;
+    m_nOpMode = 0;
 
     connectAction = new QAction(tr("连接"),this);
     connectAction->setStatusTip("通过USB2.0连接到相机");
@@ -90,10 +93,10 @@ void MVCCamera::onConnectActionTriggered()
         return;
     }
 
-//    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
 //    MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
 //    MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
-//        setText("USB相机初始化成功");
+    ui->statusBar->showMessage("USB相机初始化成功");
 
 }
 

@@ -20,6 +20,7 @@ public:
 
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
+    int m_nOpMode;
 
 public slots:
     void onConnectActionTriggered();
