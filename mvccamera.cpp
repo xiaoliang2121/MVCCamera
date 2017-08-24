@@ -26,27 +26,43 @@ MVCCamera::~MVCCamera()
 {
     delete ui;
     delete connectAction;
-    delete exitAction;
+//    delete exitAction;
+
+    delete startCapAction;
+    delete pauseCapAction;
+    delete stopCapAction;
 }
 
 void MVCCamera::setNewMenu()
 {
     menuBar()->clear();
 
+    // 相机开始、暂停、停止操作
+    startCapAction = new QAction(tr("启动"),this);
+    startCapAction->setStatusTip("启动相机，开始采集或者预览");
+    connect(startCapAction,&QAction::triggered,\
+            this,&MVCCamera::onStartCapActionTriggered);
 
+    pauseCapAction = new QAction(tr("暂停"),this);
+    pauseCapAction->setStatusTip("暂停");
+    connect(pauseCapAction,&QAction::triggered,\
+            this,&MVCCamera::onPauseCapActionTriggered);
+
+    stopCapAction = new QAction(tr("停止相机"),this);
+    stopCapAction->setStatusTip("停止相机，以及一些收尾工作");
+    connect(stopCapAction,&QAction::triggered,\
+            this,&MVCCamera::onStopCapActionTriggered);
+
+    QMenu *operation = menuBar()->addMenu(tr("操作"));
+    operation->addAction(startCapAction);
+    operation->addAction(pauseCapAction);
+    operation->addAction(stopCapAction);
 }
 
 void MVCCamera::onConnectActionTriggered()
 {
     // 设置新菜单
-    menuBar()->clear();
-
-    exitAction = new QAction(tr("退出"),this);
-    exitAction->setStatusTip("退出本程序");
-    connect(exitAction,&QAction::triggered,this,&MVCCamera::close);
-
-    QMenu *operation = menuBar()->addMenu(tr("操作"));
-    operation->addAction(exitAction);
+    setNewMenu();
 
     // 进行相机连接的初始化操作
     int nIndex = 0;
@@ -56,14 +72,29 @@ void MVCCamera::onConnectActionTriggered()
         msgBox.setText("错误：无法初始化USB相机！");
         msgBox.exec();
         MV_Usb2Uninit(&m_hMVC3000);
-        m_hMVC1000 = NULL;
+        m_hMVC3000 = NULL;
         return;
     }
 
-    MV_Usb2SetOpMode(m_hMVC1000,m_nOpMode,FALSE);
-    MV_Usb2SetRawCallBack(m_hMVC1000,RawCallBack,this);
-    MV_Usb2SetFrameCallBack(m_hMVC1000,FrameCallBack,this);
-    ui->Msg_Label->setText("USB camera init successfully");
+//    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+//    MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
+//    MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
+//        setText("USB相机初始化成功");
+
+}
+
+void MVCCamera::onStartCapActionTriggered()
+{
+
+}
+
+void MVCCamera::onPauseCapActionTriggered()
+{
+
+}
+
+void MVCCamera::onStopCapActionTriggered()
+{
 
 }
 

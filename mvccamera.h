@@ -23,6 +23,9 @@ public:
 
 public slots:
     void onConnectActionTriggered();
+    void onStartCapActionTriggered();
+    void onPauseCapActionTriggered();
+    void onStopCapActionTriggered();
 
 protected:
     void closeEvent(QCloseEvent *event);
