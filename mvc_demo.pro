@@ -15,11 +15,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mvccamera.cpp
+        mvccamera.cpp \
+    aboutdlg.cpp
 
-HEADERS  += mvccamera.h
+HEADERS  += mvccamera.h \
+    aboutdlg.h
 
-FORMS    += mvccamera.ui
+FORMS    += mvccamera.ui \
+    aboutdlg.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lMVCAPI
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lMVCAPI

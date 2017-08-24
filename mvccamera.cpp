@@ -2,6 +2,7 @@
 #include "ui_mvccamera.h"
 #include <QMessageBox>
 #include <QCloseEvent>
+#include "aboutdlg.h"
 
 MVCCamera::MVCCamera(QWidget *parent) :
     QMainWindow(parent),
@@ -98,7 +99,8 @@ void MVCCamera::onConnectActionTriggered()
 
 void MVCCamera::onShowAboutDlg()
 {
-
+    AboutDlg aboutDlg;
+    aboutDlg.exec();
 }
 
 void MVCCamera::onStartCapActionTriggered()
