@@ -4,6 +4,9 @@
 #include <QCloseEvent>
 #include "aboutdlg.h"
 
+static LONG gGains;
+static LONG gExposure;
+
 MVCCamera::MVCCamera(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MVCCamera)
@@ -13,7 +16,25 @@ MVCCamera::MVCCamera(QWidget *parent) :
     // 参数初始化
     m_hMVC3000 = NULL;
     m_nOpMode = 0;
+    m_bConnect = FALSE;
+    // MVC3000F相机
+    MAXWIDTH=2048;
+    MAXHEIGHT=1536;
+    m_nBrightness= 0;
+    m_nContrast	 = 20;
+    m_nSaturation= 100;
 
+    // 内存分配
+    DWORD RGBDataSize = MAXWIDTH*MAXHEIGHT*3;
+    m_pRGBData = (BYTE*)malloc(RGBDataSize*sizeof(BYTE));
+    memset(m_pRGBData,0,RGBDataSize);
+    DWORD RawDataSize = MAXWIDTH*MAXHEIGHT;
+    m_pRawData=(BYTE*)malloc(RawDataSize*sizeof(BYTE));
+    memset(m_pRawData,0,RawDataSize);
+    m_CapInfo.Buffer = m_pRawData;
+
+
+    // 顶层菜单设置
     connectAction = new QAction(tr("连接"),this);
     connectAction->setStatusTip("通过USB2.0连接到相机");
     connect(connectAction,&QAction::triggered,this,\
@@ -28,18 +49,19 @@ MVCCamera::MVCCamera(QWidget *parent) :
     connectMenu->addAction(connectAction);
     QMenu *helpMenu = menuBar()->addMenu("帮助");
     helpMenu->addAction(aboutAction);
-
 }
 
 MVCCamera::~MVCCamera()
 {
     delete ui;
+
     delete connectAction;
-//    delete exitAction;
+    delete aboutAction;
 
     delete startCapAction;
     delete pauseCapAction;
     delete stopCapAction;
+    delete exitAction;
 }
 
 void MVCCamera::setNewMenu()
@@ -75,6 +97,27 @@ void MVCCamera::setNewMenu()
     operation->addAction(exitAction);
 
 }
+void CALLBACK AWBFunction(LPVOID pParam)
+{
+    // 这里使用线程来处理
+}
+
+void CALLBACK AEFunction(LPVOID pParam)
+{
+    // 这里使用线程来处理
+}
+
+void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
+{
+    Q_UNUSED(lpParam);
+    Q_UNUSED(lpUser);
+}
+
+void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
+{
+    Q_UNUSED(lpParam);
+    Q_UNUSED(lpUser);
+}
 
 void MVCCamera::onConnectActionTriggered()
 {
@@ -82,6 +125,9 @@ void MVCCamera::onConnectActionTriggered()
     setNewMenu();
 
     // 进行相机连接的初始化操作
+    if(m_bConnect)
+        return;
+
     int nIndex = 0;
     int rt = MV_Usb2Init("MVC-F",&nIndex,&m_CapInfo,&m_hMVC3000);
     if(ResSuccess != rt){
@@ -93,11 +139,27 @@ void MVCCamera::onConnectActionTriggered()
         return;
     }
 
-    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
-//    MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
-//    MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
-    ui->statusBar->showMessage("USB相机初始化成功");
+    // 显示设备数(先处理只有一个相机的情况)
+    MV_Usb2GetNumberDevices(m_hMVC3000,&m_nDeviceNum);
+    LPTSTR temp;
+    MV_Usb2GetSerial(m_hMVC3000,temp);
+    QString str;
+    str.fromLatin1(temp);
+    m_strDeviceNum = QString("MVC3000F Num:%1, S/N:%2").arg(m_nDeviceNum).arg(str);
 
+    m_bConnect = TRUE;
+
+    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+
+    // 设置回调函数
+    MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,AWBFunction,&gGains);  // 自动白平衡
+    MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,AEFunction,&gExposure);         // 自动曝光操作
+
+    MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
+    MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
+
+    MV_Usb2SetImageProcess(m_hMVC3000,m_nBrightness,m_nContrast,0,m_nSaturation,TRUE);
+    ui->statusBar->showMessage("USB相机初始化成功");
 }
 
 void MVCCamera::onShowAboutDlg()
