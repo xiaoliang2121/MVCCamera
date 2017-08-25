@@ -2,6 +2,7 @@
 #define MVCCAMERA_H
 
 #include <QMainWindow>
+#include <windows.h>
 #include <MVCAPI.h>
 
 namespace Ui {
@@ -29,6 +30,9 @@ public:
     DWORD MAXWIDTH;
     DWORD MAXHEIGHT;
     int m_nBrightness, m_nContrast,m_nSaturation;       // 亮度、对比度、饱和度
+    BOOL m_bPreview;
+    BOOL m_bPause;
+    BOOL m_bBw;
 
 public slots:
     void onConnectActionTriggered();

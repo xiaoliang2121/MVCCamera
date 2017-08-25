@@ -23,6 +23,9 @@ MVCCamera::MVCCamera(QWidget *parent) :
     m_nBrightness= 0;
     m_nContrast	 = 20;
     m_nSaturation= 100;
+    m_bPreview = FALSE;
+    m_bPause   = FALSE;
+    m_bBw = FALSE;
 
     // 内存分配
     DWORD RGBDataSize = MAXWIDTH*MAXHEIGHT*3;
@@ -75,7 +78,7 @@ void MVCCamera::setNewMenu()
             this,&MVCCamera::onStartCapActionTriggered);
 
     pauseCapAction = new QAction(tr("暂停"),this);
-    pauseCapAction->setStatusTip("暂停");
+    pauseCapAction->setStatusTip("暂停预览");
     connect(pauseCapAction,&QAction::triggered,\
             this,&MVCCamera::onPauseCapActionTriggered);
 
@@ -141,15 +144,15 @@ void MVCCamera::onConnectActionTriggered()
 
     // 显示设备数(先处理只有一个相机的情况)
     MV_Usb2GetNumberDevices(m_hMVC3000,&m_nDeviceNum);
-    LPTSTR temp;
-    MV_Usb2GetSerial(m_hMVC3000,temp);
-    QString str;
-    str.fromLatin1(temp);
-    m_strDeviceNum = QString("MVC3000F Num:%1, S/N:%2").arg(m_nDeviceNum).arg(str);
+//    LPTSTR temp;
+//    MV_Usb2GetSerial(m_hMVC3000,temp);
+//    QString str;
+//    str.fromLatin1(temp);
+//    m_strDeviceNum = QString("MVC3000F Num:%1, S/N:%2").arg(m_nDeviceNum).arg(str);
 
     m_bConnect = TRUE;
 
-    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+//    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
 
     // 设置回调函数
     MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,AWBFunction,&gGains);  // 自动白平衡
@@ -170,12 +173,52 @@ void MVCCamera::onShowAboutDlg()
 
 void MVCCamera::onStartCapActionTriggered()
 {
+    if(m_hMVC3000 == NULL)
+    {
+        QMessageBox msgBox(QMessageBox::Warning,"提示",\
+                           "首先请初始化MVC相机",QMessageBox::Yes,this);
+        msgBox.exec();
+        return;
+    }
 
+    MV_Usb2Start(m_hMVC3000,"MVC相机预览",\
+                 WS_OVERLAPPEDWINDOW|WS_VISIBLE,\
+                 100,100,-1,-1,0,NULL,\
+                 THREAD_PRIORITY_NORMAL,\
+                 THREAD_PRIORITY_NORMAL);
+
+    m_bPreview = TRUE;
+    m_bPause = FALSE;
+
+    MV_Usb2SetPartOfCapInfo(m_hMVC3000,&m_CapInfo);
+    MV_Usb2SetBw(m_hMVC3000,m_bBw);
 }
 
 void MVCCamera::onPauseCapActionTriggered()
 {
+    if(!m_bConnect)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("请先连接相机");
+        msgBox.exec();
+        return;
+    }
 
+    int rt = MV_Usb2PausePreview(m_hMVC3000,m_bPause);
+    Q_UNUSED(rt);
+    m_bPause = !m_bPause;
+
+    // 改变菜单上的提示
+    if(m_bPause)
+    {
+        pauseCapAction->setText(tr("运行"));
+        pauseCapAction->setStatusTip("重新启动预览");
+    }
+    else
+    {
+        pauseCapAction->setText(tr("暂停"));
+        pauseCapAction->setStatusTip("暂停预览");
+    }
 }
 
 void MVCCamera::onStopCapActionTriggered()
