@@ -183,9 +183,8 @@ void MVCCamera::onStartCapActionTriggered()
         msgBox.exec();
         return;
     }
-    wchar_t *wstr;
-    QString("MVC相机预览").toWCharArray(wstr);
-    MV_Usb2Start(m_hMVC3000,wstr,\
+
+    MV_Usb2Start(m_hMVC3000,reinterpret_cast<LPCTSTR>(QString("MVC相机预览").utf16()),\
                  WS_OVERLAPPEDWINDOW|WS_VISIBLE,\
                  100,100,-1,-1,0,0,\
                  THREAD_PRIORITY_NORMAL,\
