@@ -101,7 +101,7 @@ void MVCCamera::setNewMenu()
 
 }
 
-LPVOID AWBFunction(LPVOID pParam)
+void AWBFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
     Q_UNUSED(pParam);
@@ -158,8 +158,8 @@ void MVCCamera::onConnectActionTriggered()
 //    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
 
     // 设置回调函数
-    MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,AWBFunction,&gGains);  // 自动白平衡
-    MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,AEFunction,&gExposure);         // 自动曝光操作
+    MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,reinterpret_cast<LPVOID>(AWBFunction),&gGains);  // 自动白平衡
+    MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,reinterpret_cast<LPVOID>(AEFunction),&gExposure);         // 自动曝光操作
 
     MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
     MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
