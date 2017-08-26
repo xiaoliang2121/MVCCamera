@@ -101,7 +101,7 @@ void MVCCamera::setNewMenu()
 
 }
 
-void AWBFunction(LPVOID pParam)
+void CALLBACK AWBFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
     Q_UNUSED(pParam);
@@ -138,6 +138,8 @@ void MVCCamera::onConnectActionTriggered()
     int rt = MV_Usb2Init("MVC-F",&nIndex,&m_CapInfo,&m_hMVC3000);
     if(ResSuccess != rt){
         QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setWindowTitle("提示");
         msgBox.setText("错误：无法初始化USB相机！");
         msgBox.exec();
         MV_Usb2Uninit(&m_hMVC3000);
@@ -202,7 +204,9 @@ void MVCCamera::onPauseCapActionTriggered()
     if(!m_bConnect)
     {
         QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
         msgBox.setText("请先连接相机");
+        msgBox.setWindowTitle("提示");
         msgBox.exec();
         return;
     }
@@ -226,7 +230,15 @@ void MVCCamera::onPauseCapActionTriggered()
 
 void MVCCamera::onStopCapActionTriggered()
 {
-
+    if(m_bPreview)
+    {
+        int rt = MV_Usb2Stop(m_hMVC3000);
+        if(ResSuccess == rt)
+        {
+            m_bPreview	= FALSE;
+            m_bPause	= FALSE;
+        }
+    }
 }
 
 void MVCCamera::closeEvent(QCloseEvent *event)
