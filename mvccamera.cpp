@@ -100,14 +100,17 @@ void MVCCamera::setNewMenu()
     operation->addAction(exitAction);
 
 }
-void CALLBACK AWBFunction(LPVOID pParam)
+
+LPVOID AWBFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
+    Q_UNUSED(pParam);
 }
 
 void CALLBACK AEFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
+    Q_UNUSED(pParam);
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
@@ -180,10 +183,11 @@ void MVCCamera::onStartCapActionTriggered()
         msgBox.exec();
         return;
     }
-
-    MV_Usb2Start(m_hMVC3000,"MVC相机预览",\
+    wchar_t *wstr;
+    QString("MVC相机预览").toWCharArray(wstr);
+    MV_Usb2Start(m_hMVC3000,wstr,\
                  WS_OVERLAPPEDWINDOW|WS_VISIBLE,\
-                 100,100,-1,-1,0,NULL,\
+                 100,100,-1,-1,0,0,\
                  THREAD_PRIORITY_NORMAL,\
                  THREAD_PRIORITY_NORMAL);
 

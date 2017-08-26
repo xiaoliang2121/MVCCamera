@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <windows.h>
+//#include <winbase.h>
+//#include <winuser.h>
 #include <MVCAPI.h>
 
 namespace Ui {
