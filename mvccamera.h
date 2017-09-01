@@ -6,6 +6,7 @@
 //#include <winbase.h>
 //#include <winuser.h>
 #include <MVCAPI.h>
+#include <QActionGroup>
 
 namespace Ui {
 class MVCCamera;
@@ -20,6 +21,8 @@ public:
     ~MVCCamera();
 
     void setNewMenu();
+    void createActions();
+    void createMenus();
 
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
@@ -44,6 +47,9 @@ public slots:
     void onPauseCapActionTriggered();
     void onStopCapActionTriggered();
 
+    void onContinueModeTriggered();
+    void onTrigModeTriggered();
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -51,12 +57,17 @@ private:
     Ui::MVCCamera *ui;
 
     QAction *connectAction;
+    QAction *quitAction;
     QAction *aboutAction;
 
     QAction *exitAction;
     QAction *startCapAction;
     QAction *pauseCapAction;
     QAction *stopCapAction;
+
+    QAction *continueMode;
+    QAction *trigMode;
+    QActionGroup *group;
 
 };
 

@@ -43,6 +43,11 @@ MVCCamera::MVCCamera(QWidget *parent) :
     connect(connectAction,&QAction::triggered,this,\
             &MVCCamera::onConnectActionTriggered);
 
+    quitAction = new QAction(tr("退出"),this);
+    quitAction->setStatusTip("退出程序");
+    connect(quitAction,&QAction::triggered,\
+            this,&MVCCamera::close);
+
     aboutAction = new QAction(tr("关于MVC_CAMERA程序"));
     aboutAction->setStatusTip("程序相关");
     connect(aboutAction,&QAction::triggered,\
@@ -50,6 +55,7 @@ MVCCamera::MVCCamera(QWidget *parent) :
 
     QMenu *connectMenu = menuBar()->addMenu(tr("USB2.0连接"));
     connectMenu->addAction(connectAction);
+    connectMenu->addAction(quitAction);
     QMenu *helpMenu = menuBar()->addMenu("帮助");
     helpMenu->addAction(aboutAction);
 }
@@ -57,20 +63,21 @@ MVCCamera::MVCCamera(QWidget *parent) :
 MVCCamera::~MVCCamera()
 {
     delete ui;
-
-    delete connectAction;
-    delete aboutAction;
-
-    delete startCapAction;
-    delete pauseCapAction;
-    delete stopCapAction;
-    delete exitAction;
 }
 
 void MVCCamera::setNewMenu()
 {
     menuBar()->clear();
 
+    // 创建新的Action
+    createActions();
+
+    // 将Action添加进菜单
+    createMenus();
+}
+
+void MVCCamera::createActions()
+{
     // 相机开始、暂停、停止操作
     startCapAction = new QAction(tr("启动"),this);
     startCapAction->setStatusTip("启动相机，开始采集或者预览");
@@ -92,6 +99,27 @@ void MVCCamera::setNewMenu()
     connect(exitAction,&QAction::triggered,\
             this,&MVCCamera::close);
 
+    // 相机模式切换
+    continueMode = new QAction(tr("连续"),this);
+    continueMode->setCheckable(true);
+    continueMode->setStatusTip("切换到连续模式");
+    connect(continueMode,&QAction::triggered,this,\
+            &MVCCamera::onContinueModeTriggered);
+
+    trigMode = new QAction(tr("触发"),this);
+    trigMode->setCheckable(true);
+    trigMode->setStatusTip("切换到触发模式");
+    connect(trigMode,&QAction::triggered,\
+            this,&MVCCamera::onTrigModeTriggered);
+
+    group = new QActionGroup(this);
+    group->addAction(continueMode);
+    group->addAction(trigMode);
+    continueMode->setChecked(true);
+}
+
+void MVCCamera::createMenus()
+{
     QMenu *operation = menuBar()->addMenu(tr("操作"));
     operation->addAction(startCapAction);
     operation->addAction(pauseCapAction);
@@ -99,6 +127,9 @@ void MVCCamera::setNewMenu()
     operation->addSeparator();
     operation->addAction(exitAction);
 
+    QMenu *ModeSelection = menuBar()->addMenu(tr("模式"));
+    ModeSelection->addAction(continueMode);
+    ModeSelection->addAction(trigMode);
 }
 
 void CALLBACK AWBFunction(LPVOID pParam)
@@ -127,9 +158,7 @@ void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
 
 void MVCCamera::onConnectActionTriggered()
 {
-    // 设置新菜单
-    setNewMenu();
-
+    setNewMenu();           // 测试时使用，完成后删除
     // 进行相机连接的初始化操作
     if(m_bConnect)
         return;
@@ -147,6 +176,9 @@ void MVCCamera::onConnectActionTriggered()
         return;
     }
 
+    // 设置新菜单
+//    setNewMenu();
+
     // 显示设备数(先处理只有一个相机的情况)
     MV_Usb2GetNumberDevices(m_hMVC3000,&m_nDeviceNum);
 //    LPTSTR temp;
@@ -157,7 +189,7 @@ void MVCCamera::onConnectActionTriggered()
 
     m_bConnect = TRUE;
 
-//    MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    emit onContinueModeTriggered();
 
     // 设置回调函数
     MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,reinterpret_cast<LPVOID>(AWBFunction),&gGains);  // 自动白平衡
@@ -238,6 +270,34 @@ void MVCCamera::onStopCapActionTriggered()
             m_bPreview	= FALSE;
             m_bPause	= FALSE;
         }
+    }
+}
+
+void MVCCamera::onContinueModeTriggered()
+{
+    m_nOpMode = 0;
+    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    if(rt != 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("设置相机模式失败");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
+}
+
+void MVCCamera::onTrigModeTriggered()
+{
+    m_nOpMode = 1;
+    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    if(rt != 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("设置相机模式失败");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
     }
 }
 
