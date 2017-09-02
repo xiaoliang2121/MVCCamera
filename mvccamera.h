@@ -20,9 +20,11 @@ public:
     explicit MVCCamera(QWidget *parent = 0);
     ~MVCCamera();
 
+    void setTopMenu();
     void setNewMenu();
     void createActions();
     void createMenus();
+    void InitImageParam();
 
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
@@ -49,6 +51,7 @@ public slots:
 
     void onContinueModeTriggered();
     void onTrigModeTriggered();
+    void onTrigModeSettingsTriggered();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -67,6 +70,7 @@ private:
 
     QAction *continueMode;
     QAction *trigMode;
+    QAction *trigModeSettings;
     QActionGroup *group;
 
 };

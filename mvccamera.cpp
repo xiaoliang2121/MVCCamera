@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include "aboutdlg.h"
+#include "trigsettingsdlg.h"
 
 static LONG gGains;
 static LONG gExposure;
@@ -34,10 +35,20 @@ MVCCamera::MVCCamera(QWidget *parent) :
     DWORD RawDataSize = MAXWIDTH*MAXHEIGHT;
     m_pRawData=(BYTE*)malloc(RawDataSize*sizeof(BYTE));
     memset(m_pRawData,0,RawDataSize);
-    m_CapInfo.Buffer = m_pRawData;
-
+//    m_CapInfo.Buffer = m_pRawData;
+    InitImageParam();
 
     // 顶层菜单设置
+    setTopMenu();
+}
+
+MVCCamera::~MVCCamera()
+{
+    delete ui;
+}
+
+void MVCCamera::setTopMenu()
+{
     connectAction = new QAction(tr("连接"),this);
     connectAction->setStatusTip("通过USB2.0连接到相机");
     connect(connectAction,&QAction::triggered,this,\
@@ -58,11 +69,6 @@ MVCCamera::MVCCamera(QWidget *parent) :
     connectMenu->addAction(quitAction);
     QMenu *helpMenu = menuBar()->addMenu("帮助");
     helpMenu->addAction(aboutAction);
-}
-
-MVCCamera::~MVCCamera()
-{
-    delete ui;
 }
 
 void MVCCamera::setNewMenu()
@@ -100,17 +106,22 @@ void MVCCamera::createActions()
             this,&MVCCamera::close);
 
     // 相机模式切换
-    continueMode = new QAction(tr("连续"),this);
+    continueMode = new QAction(tr("连续模式"),this);
     continueMode->setCheckable(true);
     continueMode->setStatusTip("切换到连续模式");
     connect(continueMode,&QAction::triggered,this,\
             &MVCCamera::onContinueModeTriggered);
 
-    trigMode = new QAction(tr("触发"),this);
+    trigMode = new QAction(tr("触发模式"),this);
     trigMode->setCheckable(true);
     trigMode->setStatusTip("切换到触发模式");
     connect(trigMode,&QAction::triggered,\
             this,&MVCCamera::onTrigModeTriggered);
+
+    trigModeSettings = new QAction(tr("触发设置"),this);
+    trigModeSettings->setStatusTip("触发模式下的参数设置");
+    connect(trigModeSettings,&QAction::triggered,\
+            this,&MVCCamera::onTrigModeSettingsTriggered);
 
     group = new QActionGroup(this);
     group->addAction(continueMode);
@@ -127,9 +138,29 @@ void MVCCamera::createMenus()
     operation->addSeparator();
     operation->addAction(exitAction);
 
-    QMenu *ModeSelection = menuBar()->addMenu(tr("模式"));
+    QMenu *ModeSelection = menuBar()->addMenu(tr("模式选择"));
     ModeSelection->addAction(continueMode);
     ModeSelection->addAction(trigMode);
+    ModeSelection->addSeparator();
+    ModeSelection->addAction(trigModeSettings);
+}
+
+void MVCCamera::InitImageParam()
+{
+    memset(&m_CapInfo, 0, sizeof(CapInfoStruct));
+    m_CapInfo.Buffer = m_pRawData;
+
+    m_CapInfo.Width		= 800;
+    m_CapInfo.Height	= 600;
+    m_CapInfo.HorizontalOffset = 0;
+    m_CapInfo.VerticalOffset   = 0;
+    m_CapInfo.Exposure         = 100;
+    m_CapInfo.Gain[0]          = 17;
+    m_CapInfo.Gain[1]          = 9;
+    m_CapInfo.Gain[2]          = 15;
+    m_CapInfo.Control          = 0;
+    memset(m_CapInfo.Reserved, 0, 8);
+    m_CapInfo.Reserved[0]	   = 2;
 }
 
 void CALLBACK AWBFunction(LPVOID pParam)
@@ -299,6 +330,12 @@ void MVCCamera::onTrigModeTriggered()
         msgBox.setWindowTitle("提示");
         msgBox.exec();
     }
+}
+
+void MVCCamera::onTrigModeSettingsTriggered()
+{
+    TrigSettingsDlg dlg;
+    dlg.exec();
 }
 
 void MVCCamera::closeEvent(QCloseEvent *event)
