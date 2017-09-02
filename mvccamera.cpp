@@ -306,6 +306,18 @@ void MVCCamera::onStopCapActionTriggered()
 
 void MVCCamera::onContinueModeTriggered()
 {
+    if(!m_bConnect)
+        return;
+
+    if(m_hMVC3000 == NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("请初始化相机");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
+
     m_nOpMode = 0;
     int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
     if(rt != 0)
@@ -320,6 +332,18 @@ void MVCCamera::onContinueModeTriggered()
 
 void MVCCamera::onTrigModeTriggered()
 {
+    if(!m_bConnect)
+        return;
+
+    if(m_hMVC3000 == NULL)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("请初始化相机");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
+
     m_nOpMode = 1;
     int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
     if(rt != 0)
@@ -335,6 +359,8 @@ void MVCCamera::onTrigModeTriggered()
 void MVCCamera::onTrigModeSettingsTriggered()
 {
     TrigSettingsDlg dlg;
+    dlg.m_hMVC3000 = m_hMVC3000;
+    dlg.m_bConnect = m_bConnect;
     dlg.exec();
 }
 

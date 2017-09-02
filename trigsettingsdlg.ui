@@ -54,58 +54,66 @@
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>TextLabel</string>
+        <string>触发脉冲宽度（us）：</string>
        </property>
       </widget>
      </item>
      <item row="1" column="3">
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="pushButton_DelayToAct">
        <property name="text">
-        <string>PushButton</string>
+        <string>设置延时时间</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEdit_2"/>
+      <widget class="QLineEdit" name="lineEdit_DelayToAct">
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
      </item>
      <item row="0" column="3">
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pushButton_SetPalse">
        <property name="text">
-        <string>PushButton</string>
+        <string>设置脉冲宽度</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="lineEdit_SetPalse">
+       <property name="text">
+        <string>1000</string>
+       </property>
+      </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>TextLabel</string>
+        <string>触发延时设置（us）：</string>
        </property>
       </widget>
      </item>
      <item row="0" column="2">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>TextLabel</string>
+        <string>（us）</string>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>TextLabel</string>
+        <string>（us）</string>
        </property>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="pushButton_Ok">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>290</x>
      <y>170</y>
      <width>75</width>
      <height>21</height>
@@ -117,5 +125,22 @@
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_Ok</sender>
+   <signal>clicked()</signal>
+   <receiver>TrigSettingsDlg</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>308</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>219</x>
+     <y>179</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
