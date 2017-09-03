@@ -4,6 +4,8 @@
 #include <QCloseEvent>
 #include "aboutdlg.h"
 #include "trigsettingsdlg.h"
+#include "QVBoxLayout"
+#include "QLabel"
 
 static LONG gGains;
 static LONG gExposure;
@@ -13,6 +15,11 @@ MVCCamera::MVCCamera(QWidget *parent) :
     ui(new Ui::MVCCamera)
 {
     ui->setupUi(this);
+    QVBoxLayout *layout = new QVBoxLayout;
+    ui->centralWidget->setLayout(layout);
+    QLabel *label = new QLabel(this);
+    label->setStyleSheet("background-color: rgb(107, 107, 107)");
+    layout->addWidget(label);
 
     // 参数初始化
     m_hMVC3000 = NULL;
