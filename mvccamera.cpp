@@ -34,6 +34,8 @@ MVCCamera::MVCCamera(QWidget *parent) :
     m_bPause   = FALSE;
     m_bBw = FALSE;
     m_bRawSave =  FALSE;
+    m_bRawToRGB = FALSE;
+    m_bRGBSave = FALSE;
 
     // 内存分配
     DWORD RGBDataSize = MAXWIDTH*MAXHEIGHT*3;
@@ -178,6 +180,71 @@ void MVCCamera::InitImageParam()
 int MVCCamera::FrameCallBackFunc(BYTE *pBGR)
 {
     // 保存为Bmp文件
+    if (m_bRGBSave) {
+        saveRGBAsBmp(pBGR, "RGBData.bmp", m_CapInfo.Width,m_CapInfo.Height);
+        m_bRGBSave=FALSE;
+    }
+
+    return 0;
+}
+
+int MVCCamera::saveRGBAsBmp(BYTE *pSrc, QString FileName, DWORD dwWidth, DWORD dwHeight)
+{
+    FILE *fp;
+    BITMAPFILEHEADER pf;
+    BITMAPINFOHEADER FrameBmi;
+
+    if(pSrc == NULL)
+        return 0;
+
+    DWORD Width = dwWidth;
+    DWORD Height = dwHeight;
+    DWORD RowLength;
+    RowLength=4*((Width*24+31)/32);
+
+    DWORD RGBFrameSize= RowLength*Height;
+
+    FrameBmi.biSize=sizeof(BITMAPINFOHEADER);
+    FrameBmi.biPlanes=1;
+    FrameBmi.biCompression=BI_RGB;
+    FrameBmi.biClrImportant=0;
+    FrameBmi.biSizeImage=0;
+    FrameBmi.biClrUsed=0;//use biBitCount value
+    FrameBmi.biBitCount=24;
+    FrameBmi.biWidth=Width;
+    FrameBmi.biHeight=Height;
+    FrameBmi.biXPelsPerMeter = 0;
+    FrameBmi.biYPelsPerMeter =0;
+
+    QByteArray FileName_ = FileName.toLocal8Bit();
+    fp = fopen(FileName_.data(), "wb");
+    if (fp == NULL){
+        QMessageBox msgBox;
+        msgBox.setText("ERROR: 创建文件出现错误！");
+        msgBox.exec();
+        return -1;
+    }
+
+    pf.bfType=0x4d42; //"BM"
+    pf.bfSize=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER)+RGBFrameSize;
+    pf.bfOffBits=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER);
+    pf.bfReserved1=0;
+    pf.bfReserved2=0;
+
+    RGBQUAD *pPallete = (RGBQUAD*)malloc(256*sizeof(RGBQUAD));
+    for(int i=0 ; i<256; i++){
+        pPallete[i].rgbRed = (BYTE)i;
+        pPallete[i].rgbBlue = (BYTE)i;
+        pPallete[i].rgbGreen = (BYTE)i;
+        pPallete[i].rgbReserved = (BYTE)0;
+    }
+    fwrite(&pf,sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
+    fwrite(&FrameBmi,sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
+    fwrite(pSrc,sizeof(BYTE),RGBFrameSize,fp);
+    fclose(fp);
+    free(pPallete);
+
+    return 0;
 }
 
 void CALLBACK AWBFunction(LPVOID pParam)
@@ -194,13 +261,34 @@ void CALLBACK AEFunction(LPVOID pParam)
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-    BYTE *pDataBuffer = (BYTE*)lpParam;
+    BYTE *pDataBuffer = (BYTE *)lpParam;
     MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
 
+    // 保存Raw数据
     if(pMVCCamera->m_bRawSave)
     {
         // 保存操作
-        Q_UNUSED(pDataBuffer);
+        FILE * fp;
+        fp = fopen("RawData.raw", "wb+");
+        if(fp)
+            fwrite(pDataBuffer,sizeof(BYTE),\
+                   pMVCCamera->m_CapInfo.Width*pMVCCamera->m_CapInfo.Height,\
+                   fp);
+        fclose(fp);
+        pMVCCamera->m_bRawSave = FALSE;
+    }
+
+    // 转换为RGB数据，以便后续操作
+    if (pMVCCamera->m_bRawToRGB)
+    {
+        MV_Usb2ConvertRawToRgb(pMVCCamera->m_hMVC3000,pDataBuffer,\
+                               pMVCCamera->m_CapInfo.Width,\
+                               pMVCCamera->m_CapInfo.Height,\
+                               pMVCCamera->m_pRGBData);
+        pMVCCamera->saveRGBAsBmp(pMVCCamera->m_pRGBData, "RawToRGBData.bmp",\
+                               pMVCCamera->m_CapInfo.Width,\
+                               pMVCCamera->m_CapInfo.Height);
+        pMVCCamera->m_bRawToRGB = FALSE;
     }
 }
 

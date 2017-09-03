@@ -27,6 +27,8 @@ public:
     void createMenus();
     void InitImageParam();
     int FrameCallBackFunc(BYTE *pBGR);
+    int saveRGBAsBmp(BYTE * pSrc, QString FileName,\
+                     DWORD dwWidth, DWORD dwHeight);
 
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
@@ -42,7 +44,10 @@ public:
     BOOL m_bPreview;
     BOOL m_bPause;
     BOOL m_bBw;
+    // 标志位
     BOOL m_bRawSave;
+    BOOL m_bRawToRGB;
+    BOOL m_bRGBSave;
 
 public slots:
     void onConnectActionTriggered();
