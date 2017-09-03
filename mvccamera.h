@@ -7,6 +7,7 @@
 //#include <winuser.h>
 #include <MVCAPI.h>
 #include <QActionGroup>
+#include <QLabel>
 
 namespace Ui {
 class MVCCamera;
@@ -25,6 +26,7 @@ public:
     void createActions();
     void createMenus();
     void InitImageParam();
+    int FrameCallBackFunc(BYTE *pBGR);
 
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
@@ -40,6 +42,7 @@ public:
     BOOL m_bPreview;
     BOOL m_bPause;
     BOOL m_bBw;
+    BOOL m_bRawSave;
 
 public slots:
     void onConnectActionTriggered();
@@ -58,6 +61,7 @@ protected:
 
 private:
     Ui::MVCCamera *ui;
+    QLabel *Camera_label;
 
     QAction *connectAction;
     QAction *quitAction;
@@ -73,6 +77,7 @@ private:
     QAction *trigModeSettings;
     QActionGroup *group;
 
+    QRect m_rectPreview;
 };
 
 #endif // MVCCAMERA_H

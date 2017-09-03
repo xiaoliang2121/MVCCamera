@@ -2,10 +2,9 @@
 #include "ui_mvccamera.h"
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QVBoxLayout>
 #include "aboutdlg.h"
 #include "trigsettingsdlg.h"
-#include "QVBoxLayout"
-#include "QLabel"
 
 static LONG gGains;
 static LONG gExposure;
@@ -17,9 +16,9 @@ MVCCamera::MVCCamera(QWidget *parent) :
     ui->setupUi(this);
     QVBoxLayout *layout = new QVBoxLayout;
     ui->centralWidget->setLayout(layout);
-    QLabel *label = new QLabel(this);
-    label->setStyleSheet("background-color: rgb(107, 107, 107)");
-    layout->addWidget(label);
+    Camera_label = new QLabel(this);
+    Camera_label->setStyleSheet("background-color: rgb(107, 107, 107)");
+    layout->addWidget(Camera_label);
 
     // 参数初始化
     m_hMVC3000 = NULL;
@@ -34,6 +33,7 @@ MVCCamera::MVCCamera(QWidget *parent) :
     m_bPreview = FALSE;
     m_bPause   = FALSE;
     m_bBw = FALSE;
+    m_bRawSave =  FALSE;
 
     // 内存分配
     DWORD RGBDataSize = MAXWIDTH*MAXHEIGHT*3;
@@ -168,6 +168,16 @@ void MVCCamera::InitImageParam()
     m_CapInfo.Control          = 0;
     memset(m_CapInfo.Reserved, 0, 8);
     m_CapInfo.Reserved[0]	   = 2;
+
+    m_rectPreview.setTop(0);
+    m_rectPreview.setLeft(0);
+    m_rectPreview.setWidth(m_CapInfo.Width);
+    m_rectPreview.setHeight(m_CapInfo.Height);
+}
+
+int MVCCamera::FrameCallBackFunc(BYTE *pBGR)
+{
+    // 保存为Bmp文件
 }
 
 void CALLBACK AWBFunction(LPVOID pParam)
@@ -184,14 +194,22 @@ void CALLBACK AEFunction(LPVOID pParam)
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-    Q_UNUSED(lpParam);
-    Q_UNUSED(lpUser);
+    BYTE *pDataBuffer = (BYTE*)lpParam;
+    MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
+
+    if(pMVCCamera->m_bRawSave)
+    {
+        // 保存操作
+        Q_UNUSED(pDataBuffer);
+    }
 }
 
 void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
 {
-    Q_UNUSED(lpParam);
-    Q_UNUSED(lpUser);
+    BYTE *pDataBuffer = (BYTE*)lpParam;
+    MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
+
+    pMVCCamera->FrameCallBackFunc(pDataBuffer);
 }
 
 void MVCCamera::onConnectActionTriggered()
@@ -256,9 +274,16 @@ void MVCCamera::onStartCapActionTriggered()
         return;
     }
 
+    HWND hwnd = (HWND)Camera_label->winId();
+
     MV_Usb2Start(m_hMVC3000,reinterpret_cast<LPCTSTR>(QString("MVC相机预览").utf16()),\
-                 WS_OVERLAPPEDWINDOW|WS_VISIBLE,\
-                 100,100,-1,-1,0,0,\
+                 WS_CHILD|WS_VISIBLE,\
+                 m_rectPreview.left(),\
+                 m_rectPreview.top(),\
+                 m_rectPreview.width(),\
+                 m_rectPreview.height(),\
+                 hwnd,\
+                 0,\
                  THREAD_PRIORITY_NORMAL,\
                  THREAD_PRIORITY_NORMAL);
 
