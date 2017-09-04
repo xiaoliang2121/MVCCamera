@@ -25,6 +25,7 @@ public:
     void setNewMenu();
     void createActions();
     void createMenus();
+    void createTools();
     void InitImageParam();
     int FrameCallBackFunc(BYTE *pBGR);
     int saveRGBAsBmp(BYTE * pSrc, QString FileName,\

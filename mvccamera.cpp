@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QVBoxLayout>
+#include <QToolBar>
 #include "aboutdlg.h"
 #include "trigsettingsdlg.h"
 
@@ -89,22 +90,25 @@ void MVCCamera::setNewMenu()
 
     // 将Action添加进菜单
     createMenus();
+
+    // 将Action添加进工具栏
+    createTools();
 }
 
 void MVCCamera::createActions()
 {
     // 相机开始、暂停、停止操作
-    startCapAction = new QAction(tr("启动"),this);
+    startCapAction = new QAction(QIcon(":/icon/start.ico"),tr("启动"),this);
     startCapAction->setStatusTip("启动相机，开始采集或者预览");
     connect(startCapAction,&QAction::triggered,\
             this,&MVCCamera::onStartCapActionTriggered);
 
-    pauseCapAction = new QAction(tr("暂停"),this);
+    pauseCapAction = new QAction(QIcon(":/icon/pause.ico"),tr("暂停"),this);
     pauseCapAction->setStatusTip("暂停预览");
     connect(pauseCapAction,&QAction::triggered,\
             this,&MVCCamera::onPauseCapActionTriggered);
 
-    stopCapAction = new QAction(tr("停止"),this);
+    stopCapAction = new QAction(QIcon(":/icon/stop.ico"),tr("停止"),this);
     stopCapAction->setStatusTip("停止相机，以及一些收尾工作");
     connect(stopCapAction,&QAction::triggered,\
             this,&MVCCamera::onStopCapActionTriggered);
@@ -152,6 +156,14 @@ void MVCCamera::createMenus()
     ModeSelection->addAction(trigMode);
     ModeSelection->addSeparator();
     ModeSelection->addAction(trigModeSettings);
+}
+
+void MVCCamera::createTools()
+{
+    QToolBar *operationTool = addToolBar(tr("操作"));
+    operationTool->addAction(startCapAction);
+    operationTool->addAction(pauseCapAction);
+    operationTool->addAction(stopCapAction);
 }
 
 void MVCCamera::InitImageParam()
