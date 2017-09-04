@@ -1,9 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>icon/Init.ICO</file>
         <file>icon/param.ICO</file>
         <file>icon/pause.ico</file>
-        <file>icon/save.ico</file>
         <file>icon/start.ico</file>
         <file>icon/stop.ico</file>
     </qresource>
