@@ -131,7 +131,7 @@ void MVCCamera::createActions()
     connect(trigMode,&QAction::triggered,\
             this,&MVCCamera::onTrigModeTriggered);
 
-    trigModeSettings = new QAction(tr("触发设置"),this);
+    trigModeSettings = new QAction(QIcon(":/icon/param.ICO"),tr("触发设置"),this);
     trigModeSettings->setStatusTip("触发模式下的参数设置");
     connect(trigModeSettings,&QAction::triggered,\
             this,&MVCCamera::onTrigModeSettingsTriggered);
@@ -140,6 +140,12 @@ void MVCCamera::createActions()
     group->addAction(continueMode);
     group->addAction(trigMode);
     continueMode->setChecked(true);
+
+    // 预览设置
+    bwAction = new QAction(QIcon(":/icon/bwShow.png"),tr("黑白显示"),this);
+    bwAction->setStatusTip("黑白/彩色显示切换");
+    connect(bwAction,&QAction::triggered,\
+            this,&MVCCamera::onBwActionTriggered);
 }
 
 void MVCCamera::createMenus()
@@ -156,6 +162,10 @@ void MVCCamera::createMenus()
     ModeSelection->addAction(trigMode);
     ModeSelection->addSeparator();
     ModeSelection->addAction(trigModeSettings);
+
+    QMenu *RTOperation = menuBar()->addMenu(tr("实时处理"));
+    RTOperation->addAction(bwAction);
+    RTOperation->addSeparator();
 }
 
 void MVCCamera::createTools()
@@ -164,6 +174,9 @@ void MVCCamera::createTools()
     operationTool->addAction(startCapAction);
     operationTool->addAction(pauseCapAction);
     operationTool->addAction(stopCapAction);
+
+    QToolBar *RTOperationTool = addToolBar(tr("实时处理工具栏"));
+    RTOperationTool->addAction(bwAction);
 }
 
 void MVCCamera::InitImageParam()
@@ -494,6 +507,28 @@ void MVCCamera::onTrigModeSettingsTriggered()
     dlg.m_hMVC3000 = m_hMVC3000;
     dlg.m_bConnect = m_bConnect;
     dlg.exec();
+}
+
+void MVCCamera::onBwActionTriggered()
+{
+    if(!m_bConnect)
+        return;
+
+    if(!m_bBw)
+    {
+        m_bBw = TRUE;
+        bwAction->setText(tr("彩色显示"));
+        bwAction->setStatusTip("切换为彩色显示");
+
+    }
+    else
+    {
+        m_bBw = FALSE;
+        bwAction->setText(tr("黑白显示"));
+        bwAction->setStatusTip("切换为黑白显示");
+    }
+
+    MV_Usb2SetBw(m_hMVC3000,m_bBw);
 }
 
 void MVCCamera::closeEvent(QCloseEvent *event)

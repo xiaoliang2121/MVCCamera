@@ -62,12 +62,15 @@ public slots:
     void onTrigModeTriggered();
     void onTrigModeSettingsTriggered();
 
+    void onBwActionTriggered();
+
 protected:
     void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MVCCamera *ui;
     QLabel *Camera_label;
+    QRect m_rectPreview;
 
     QAction *connectAction;
     QAction *quitAction;
@@ -83,7 +86,7 @@ private:
     QAction *trigModeSettings;
     QActionGroup *group;
 
-    QRect m_rectPreview;
+    QAction *bwAction;
 };
 
 #endif // MVCCAMERA_H

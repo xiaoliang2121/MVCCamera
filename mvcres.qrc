@@ -4,5 +4,6 @@
         <file>icon/pause.ico</file>
         <file>icon/start.ico</file>
         <file>icon/stop.ico</file>
+        <file>icon/bwShow.png</file>
     </qresource>
 </RCC>

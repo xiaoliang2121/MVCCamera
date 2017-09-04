@@ -7,6 +7,9 @@ TrigSettingsDlg::TrigSettingsDlg(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QIcon windowIcon = QIcon(tr(":/icon/param.ICO"));
+    setWindowIcon(windowIcon);
+
     m_bTrigPolarity = 1;
     m_hMVC3000 = NULL;
     m_bConnect = FALSE;
