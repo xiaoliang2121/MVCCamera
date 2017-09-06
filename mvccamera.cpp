@@ -299,24 +299,32 @@ int MVCCamera::saveRGBAsBmp(BYTE *pSrc, QString FileName, DWORD dwWidth, DWORD d
 
 void MVCCamera::AWBFunction(LPVOID pParam)
 {
-    // 这里使用线程来处理
     Q_UNUSED(pParam);
 
+    // 这里使用线程来处理
     if(!m_WBOnWork.isRunning())
         m_WBOnWork.start();
 
     emit AwbTriggered(gGains);
+
+    // 更新m_CapInfo中参数
+    m_CapInfo.Gain[0] = gGains & 0xff;
+    m_CapInfo.Gain[1] = (gGains >> 8) & 0xff;
+    m_CapInfo.Gain[2] = (gGains >> 16) & 0xff;
 }
 
 void MVCCamera::AEFunction(LPVOID pParam)
 {
-    // 这里使用线程来处理
     Q_UNUSED(pParam);
 
+    // 这里使用线程来处理
     if(!m_ExOnWork.isRunning())
         m_ExOnWork.start();
 
     emit AeTriggered(gExposure);
+
+    // 更新m_CapInfo中参数
+    m_CapInfo.Exposure = gExposure;
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
