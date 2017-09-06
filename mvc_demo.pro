@@ -17,11 +17,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mvccamera.cpp \
     aboutdlg.cpp \
-    trigsettingsdlg.cpp
+    trigsettingsdlg.cpp \
+    autoexposure.cpp \
+    autowhitebalance.cpp \
+    workthread.cpp
 
 HEADERS  += mvccamera.h \
     aboutdlg.h \
-    trigsettingsdlg.h
+    trigsettingsdlg.h \
+    autoexposure.h \
+    autowhitebalance.h \
+    workthread.h
 
 FORMS    += mvccamera.ui \
     aboutdlg.ui \

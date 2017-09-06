@@ -8,6 +8,9 @@
 #include <MVCAPI.h>
 #include <QActionGroup>
 #include <QLabel>
+#include "workthread.h"
+#include "autoexposure.h"
+#include "autowhitebalance.h"
 
 namespace Ui {
 class MVCCamera;
@@ -50,6 +53,10 @@ public:
     BOOL m_bRawToRGB;
     BOOL m_bRGBSave;
 
+public:
+    void CALLBACK AWBFunction(LPVOID pParam);
+    void CALLBACK AEFunction(LPVOID pParam);
+
 public slots:
     void onConnectActionTriggered();
     void onShowAboutDlg();
@@ -62,15 +69,27 @@ public slots:
     void onTrigModeTriggered();
     void onTrigModeSettingsTriggered();
 
+    void onAutoExposureTriggered();
+    void onAutoWhiteBalanceTriggered();
     void onBwActionTriggered();
 
 protected:
     void closeEvent(QCloseEvent *event);
 
+signals:
+    void AwbTriggered(LONG value);
+    void AeTriggered(LONG value);
+
 private:
     Ui::MVCCamera *ui;
     QLabel *Camera_label;
     QRect m_rectPreview;
+
+    // 自动曝光和自动白平衡线程
+    WorkThread m_ExOnWork;
+    WorkThread m_WBOnWork;
+    AutoExposure m_AutoEx;
+    AutoWhiteBalance m_AutoWB;
 
     QAction *connectAction;
     QAction *quitAction;
@@ -86,6 +105,8 @@ private:
     QAction *trigModeSettings;
     QActionGroup *group;
 
+    QAction *autoExposuse;
+    QAction *autoWhiteBalance;
     QAction *bwAction;
 };
 

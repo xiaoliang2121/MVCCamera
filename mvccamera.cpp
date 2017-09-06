@@ -21,6 +21,15 @@ MVCCamera::MVCCamera(QWidget *parent) :
     Camera_label->setStyleSheet("background-color: rgb(107, 107, 107)");
     layout->addWidget(Camera_label);
 
+    // 线程初始化
+    m_AutoEx.moveToThread(&m_ExOnWork);
+    connect(this,&MVCCamera::AeTriggered,\
+            &m_AutoEx,&AutoExposure::DoAutoEx);
+
+    m_AutoWB.moveToThread(&m_WBOnWork);
+    connect(this,&MVCCamera::AwbTriggered,\
+            &m_AutoWB,&AutoWhiteBalance::DoAutoWB);
+
     // 参数初始化
     m_hMVC3000 = NULL;
     m_nOpMode = 0;
@@ -141,7 +150,17 @@ void MVCCamera::createActions()
     group->addAction(trigMode);
     continueMode->setChecked(true);
 
-    // 预览设置
+    // 视频调整和预览设置
+    autoExposuse = new QAction(tr("自动曝光"),this);
+    autoExposuse->setStatusTip("对相机进行自动曝光操作");
+    connect(autoExposuse,&QAction::triggered,\
+            this,&MVCCamera::onAutoExposureTriggered);
+
+    autoWhiteBalance = new QAction(tr("自动白平衡"),this);
+    autoWhiteBalance->setStatusTip("对相机进行自动曝光操作");
+    connect(autoWhiteBalance,&QAction::triggered,\
+            this,&MVCCamera::onAutoWhiteBalanceTriggered);
+
     bwAction = new QAction(QIcon(":/icon/bwShow.png"),tr("黑白显示"),this);
     bwAction->setStatusTip("黑白/彩色显示切换");
     connect(bwAction,&QAction::triggered,\
@@ -163,9 +182,12 @@ void MVCCamera::createMenus()
     ModeSelection->addSeparator();
     ModeSelection->addAction(trigModeSettings);
 
-    QMenu *RTOperation = menuBar()->addMenu(tr("实时处理"));
-    RTOperation->addAction(bwAction);
-    RTOperation->addSeparator();
+    QMenu *VideoOperation = menuBar()->addMenu(tr("视频"));
+    VideoOperation->addAction(autoExposuse);
+    VideoOperation->addAction(autoWhiteBalance);
+    VideoOperation->addSeparator();
+    VideoOperation->addAction(bwAction);
+    VideoOperation->addSeparator();
 }
 
 void MVCCamera::createTools()
@@ -175,8 +197,8 @@ void MVCCamera::createTools()
     operationTool->addAction(pauseCapAction);
     operationTool->addAction(stopCapAction);
 
-    QToolBar *RTOperationTool = addToolBar(tr("实时处理工具栏"));
-    RTOperationTool->addAction(bwAction);
+    QToolBar *VideoTool = addToolBar(tr("视频"));
+    VideoTool->addAction(bwAction);
 }
 
 void MVCCamera::InitImageParam()
@@ -200,6 +222,9 @@ void MVCCamera::InitImageParam()
     m_rectPreview.setLeft(0);
     m_rectPreview.setWidth(m_CapInfo.Width);
     m_rectPreview.setHeight(m_CapInfo.Height);
+
+    m_AutoEx.m_CapInfo = m_CapInfo;
+    m_AutoWB.m_CapInfo = m_CapInfo;
 }
 
 int MVCCamera::FrameCallBackFunc(BYTE *pBGR)
@@ -272,16 +297,26 @@ int MVCCamera::saveRGBAsBmp(BYTE *pSrc, QString FileName, DWORD dwWidth, DWORD d
     return 0;
 }
 
-void CALLBACK AWBFunction(LPVOID pParam)
+void MVCCamera::AWBFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
     Q_UNUSED(pParam);
+
+    if(!m_WBOnWork.isRunning())
+        m_WBOnWork.start();
+
+    emit AwbTriggered(gGains);
 }
 
-void CALLBACK AEFunction(LPVOID pParam)
+void MVCCamera::AEFunction(LPVOID pParam)
 {
     // 这里使用线程来处理
     Q_UNUSED(pParam);
+
+    if(!m_ExOnWork.isRunning())
+        m_ExOnWork.start();
+
+    emit AeTriggered(gExposure);
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
@@ -357,12 +392,16 @@ void MVCCamera::onConnectActionTriggered()
 //    m_strDeviceNum = QString("MVC3000F Num:%1, S/N:%2").arg(m_nDeviceNum).arg(str);
 
     m_bConnect = TRUE;
+    m_AutoEx.m_hMVC3000 = m_hMVC3000;
+    m_AutoWB.m_hMVC3000 = m_hMVC3000;
 
     emit onContinueModeTriggered();
 
     // 设置回调函数
-    MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,reinterpret_cast<LPVOID>(AWBFunction),&gGains);  // 自动白平衡
-    MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,reinterpret_cast<LPVOID>(AEFunction),&gExposure);         // 自动曝光操作
+    MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,\
+                                  reinterpret_cast<LPVOID>(&MVCCamera::AWBFunction),&gGains);  // 自动白平衡
+    MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,\
+                                 reinterpret_cast<LPVOID>(&MVCCamera::AEFunction),&gExposure);         // 自动曝光操作
 
     MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
     MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
@@ -507,6 +546,34 @@ void MVCCamera::onTrigModeSettingsTriggered()
     dlg.m_hMVC3000 = m_hMVC3000;
     dlg.m_bConnect = m_bConnect;
     dlg.exec();
+}
+
+void MVCCamera::onAutoExposureTriggered()
+{
+    int rt = MV_Usb2AutoExposure(m_hMVC3000,TRUE,180,\
+                        reinterpret_cast<LPVOID>(&MVCCamera::AEFunction),&gExposure);
+    if(ResSuccess != rt)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("自动曝光执行失败");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
+}
+
+void MVCCamera::onAutoWhiteBalanceTriggered()
+{
+    int rt = MV_Usb2AWB(m_hMVC3000,TRUE,180,180,180,\
+               reinterpret_cast<LPVOID>(&MVCCamera::AWBFunction),&gGains);
+    if(ResSuccess != rt)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("自动白平衡执行失败");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
 }
 
 void MVCCamera::onBwActionTriggered()
