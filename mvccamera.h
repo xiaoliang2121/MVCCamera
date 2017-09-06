@@ -34,6 +34,7 @@ public:
     int saveRGBAsBmp(BYTE * pSrc, QString FileName,\
                      DWORD dwWidth, DWORD dwHeight);
 
+public:
     HANDLE m_hMVC3000;
     CapInfoStruct m_CapInfo;        // 视频属性
     int m_nOpMode;                  // 模式[连续或者触发]
@@ -71,6 +72,7 @@ public slots:
 
     void onAutoExposureTriggered();
     void onAutoWhiteBalanceTriggered();
+    void onGammaCorrectionTriggered();
     void onBwActionTriggered();
 
 protected:
@@ -107,6 +109,7 @@ private:
 
     QAction *autoExposuse;
     QAction *autoWhiteBalance;
+    QAction *GammaCorrection;
     QAction *bwAction;
 };
 

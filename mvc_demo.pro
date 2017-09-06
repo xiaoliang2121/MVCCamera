@@ -20,18 +20,21 @@ SOURCES += main.cpp\
     trigsettingsdlg.cpp \
     autoexposure.cpp \
     autowhitebalance.cpp \
-    workthread.cpp
+    workthread.cpp \
+    gammavalset.cpp
 
 HEADERS  += mvccamera.h \
     aboutdlg.h \
     trigsettingsdlg.h \
     autoexposure.h \
     autowhitebalance.h \
-    workthread.h
+    workthread.h \
+    gammavalset.h
 
 FORMS    += mvccamera.ui \
     aboutdlg.ui \
-    trigsettingsdlg.ui
+    trigsettingsdlg.ui \
+    gammavalset.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lMVCAPI
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lMVCAPI

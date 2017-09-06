@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include "aboutdlg.h"
 #include "trigsettingsdlg.h"
+#include "gammavalset.h"
 
 static LONG gGains;
 static LONG gExposure;
@@ -161,6 +162,11 @@ void MVCCamera::createActions()
     connect(autoWhiteBalance,&QAction::triggered,\
             this,&MVCCamera::onAutoWhiteBalanceTriggered);
 
+    GammaCorrection = new QAction(QIcon(":/icon/colorcorrect.png"),tr("伽马值正"),this);
+    GammaCorrection->setStatusTip("进行Gamma值校正");
+    connect(GammaCorrection,&QAction::triggered,\
+            this,&MVCCamera::onGammaCorrectionTriggered);
+
     bwAction = new QAction(QIcon(":/icon/bwShow.png"),tr("黑白显示"),this);
     bwAction->setStatusTip("黑白/彩色显示切换");
     connect(bwAction,&QAction::triggered,\
@@ -188,6 +194,7 @@ void MVCCamera::createMenus()
     VideoOperation->addSeparator();
     VideoOperation->addAction(bwAction);
     VideoOperation->addSeparator();
+    VideoOperation->addAction(GammaCorrection);
 }
 
 void MVCCamera::createTools()
@@ -199,6 +206,7 @@ void MVCCamera::createTools()
 
     QToolBar *VideoTool = addToolBar(tr("视频"));
     VideoTool->addAction(bwAction);
+    VideoTool->addAction(GammaCorrection);
 }
 
 void MVCCamera::InitImageParam()
@@ -582,6 +590,12 @@ void MVCCamera::onAutoWhiteBalanceTriggered()
         msgBox.setWindowTitle("提示");
         msgBox.exec();
     }
+}
+
+void MVCCamera::onGammaCorrectionTriggered()
+{
+    GammaValSet dlg;
+    dlg.exec();
 }
 
 void MVCCamera::onBwActionTriggered()

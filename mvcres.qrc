@@ -5,5 +5,6 @@
         <file>icon/start.ico</file>
         <file>icon/stop.ico</file>
         <file>icon/bwShow.png</file>
+        <file>icon/colorcorrect.png</file>
     </qresource>
 </RCC>
