@@ -595,6 +595,8 @@ void MVCCamera::onAutoWhiteBalanceTriggered()
 void MVCCamera::onGammaCorrectionTriggered()
 {
     GammaValSet dlg;
+    dlg.m_hMVC3000 = m_hMVC3000;
+    dlg.fValue = 1.0;
     dlg.exec();
 }
 
