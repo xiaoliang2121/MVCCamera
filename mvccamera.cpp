@@ -10,6 +10,7 @@
 
 static LONG gGains;
 static LONG gExposure;
+MVCCamera *gMVC;
 
 MVCCamera::MVCCamera(QWidget *parent) :
     QMainWindow(parent),
@@ -21,6 +22,8 @@ MVCCamera::MVCCamera(QWidget *parent) :
     Camera_label = new QLabel(this);
     Camera_label->setStyleSheet("background-color: rgb(107, 107, 107)");
     layout->addWidget(Camera_label);
+
+    gMVC = this;
 
     // 线程初始化
     m_AutoEx.moveToThread(&m_ExOnWork);
@@ -305,34 +308,34 @@ int MVCCamera::saveRGBAsBmp(BYTE *pSrc, QString FileName, DWORD dwWidth, DWORD d
     return 0;
 }
 
-void MVCCamera::AWBFunction(LPVOID pParam)
+void CALLBACK AWBFunction(LPVOID pParam)
 {
     Q_UNUSED(pParam);
 
     // 这里使用线程来处理
-    if(!m_WBOnWork.isRunning())
-        m_WBOnWork.start();
+    if(!gMVC->m_WBOnWork.isRunning())
+        gMVC->m_WBOnWork.start();
 
-    emit AwbTriggered(gGains);
+    emit gMVC->AwbTriggered(gGains);
 
     // 更新m_CapInfo中参数
-    m_CapInfo.Gain[0] = gGains & 0xff;
-    m_CapInfo.Gain[1] = (gGains >> 8) & 0xff;
-    m_CapInfo.Gain[2] = (gGains >> 16) & 0xff;
+    gMVC->m_CapInfo.Gain[0] = gGains & 0xff;
+    gMVC->m_CapInfo.Gain[1] = (gGains >> 8) & 0xff;
+    gMVC->m_CapInfo.Gain[2] = (gGains >> 16) & 0xff;
 }
 
-void MVCCamera::AEFunction(LPVOID pParam)
+void CALLBACK AEFunction(LPVOID pParam)
 {
     Q_UNUSED(pParam);
 
     // 这里使用线程来处理
-    if(!m_ExOnWork.isRunning())
-        m_ExOnWork.start();
+    if(!gMVC->m_ExOnWork.isRunning())
+        gMVC->m_ExOnWork.start();
 
-    emit AeTriggered(gExposure);
+    emit gMVC->AeTriggered(gExposure);
 
     // 更新m_CapInfo中参数
-    m_CapInfo.Exposure = gExposure;
+    gMVC->m_CapInfo.Exposure = gExposure;
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
@@ -415,9 +418,9 @@ void MVCCamera::onConnectActionTriggered()
 
     // 设置回调函数
     MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,\
-                                  reinterpret_cast<LPVOID>(&MVCCamera::AWBFunction),&gGains);  // 自动白平衡
+                                  reinterpret_cast<LPVOID>(AWBFunction),&gGains);  // 自动白平衡
     MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,\
-                                 reinterpret_cast<LPVOID>(&MVCCamera::AEFunction),&gExposure);         // 自动曝光操作
+                                 reinterpret_cast<LPVOID>(AEFunction),&gExposure);         // 自动曝光操作
 
     MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
     MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
@@ -567,7 +570,7 @@ void MVCCamera::onTrigModeSettingsTriggered()
 void MVCCamera::onAutoExposureTriggered()
 {
     int rt = MV_Usb2AutoExposure(m_hMVC3000,TRUE,180,\
-                        reinterpret_cast<LPVOID>(&MVCCamera::AEFunction),&gExposure);
+                        reinterpret_cast<LPVOID>(AEFunction),&gExposure);
     if(ResSuccess != rt)
     {
         QMessageBox msgBox;
@@ -581,7 +584,7 @@ void MVCCamera::onAutoExposureTriggered()
 void MVCCamera::onAutoWhiteBalanceTriggered()
 {
     int rt = MV_Usb2AWB(m_hMVC3000,TRUE,180,180,180,\
-               reinterpret_cast<LPVOID>(&MVCCamera::AWBFunction),&gGains);
+               reinterpret_cast<LPVOID>(AWBFunction),&gGains);
     if(ResSuccess != rt)
     {
         QMessageBox msgBox;

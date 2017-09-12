@@ -54,9 +54,11 @@ public:
     BOOL m_bRawToRGB;
     BOOL m_bRGBSave;
 
-public:
-    void CALLBACK AWBFunction(LPVOID pParam);
-    void CALLBACK AEFunction(LPVOID pParam);
+    // 自动曝光和自动白平衡线程
+    WorkThread m_ExOnWork;
+    WorkThread m_WBOnWork;
+    AutoExposure m_AutoEx;
+    AutoWhiteBalance m_AutoWB;
 
 public slots:
     void onConnectActionTriggered();
@@ -86,12 +88,6 @@ private:
     Ui::MVCCamera *ui;
     QLabel *Camera_label;
     QRect m_rectPreview;
-
-    // 自动曝光和自动白平衡线程
-    WorkThread m_ExOnWork;
-    WorkThread m_WBOnWork;
-    AutoExposure m_AutoEx;
-    AutoWhiteBalance m_AutoWB;
 
     QAction *connectAction;
     QAction *quitAction;
