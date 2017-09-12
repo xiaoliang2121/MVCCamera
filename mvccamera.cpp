@@ -165,7 +165,7 @@ void MVCCamera::createActions()
     connect(autoWhiteBalance,&QAction::triggered,\
             this,&MVCCamera::onAutoWhiteBalanceTriggered);
 
-    GammaCorrection = new QAction(QIcon(":/icon/colorcorrect.png"),tr("伽马值正"),this);
+    GammaCorrection = new QAction(QIcon(":/icon/colorcorrect.png"),tr("伽马校正"),this);
     GammaCorrection->setStatusTip("进行Gamma值校正");
     connect(GammaCorrection,&QAction::triggered,\
             this,&MVCCamera::onGammaCorrectionTriggered);
