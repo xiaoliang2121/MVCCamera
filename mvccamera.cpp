@@ -604,6 +604,9 @@ void MVCCamera::onStopCapImgTriggered()
 {
     m_bRawSave = FALSE;
     m_bRGBSave = FALSE;
+
+    m_imgCount = 0; // 清零
+
     capFrame->setEnabled(true);
     stopCapImg->setEnabled(false);
 }
