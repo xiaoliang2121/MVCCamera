@@ -23,7 +23,9 @@ MVCCamera::MVCCamera(QWidget *parent) :
     Camera_label->setStyleSheet("background-color: rgb(107, 107, 107)");
     layout->addWidget(Camera_label);
 
+    // 供回调函数使用
     gMVC = this;
+    m_imgCount = 0;
 
     // 线程初始化
     m_AutoEx.moveToThread(&m_ExOnWork);
@@ -48,7 +50,7 @@ MVCCamera::MVCCamera(QWidget *parent) :
     m_bPause   = FALSE;
     m_bBw = FALSE;
     m_bRawSave =  FALSE;
-    m_bRawToRGB = FALSE;
+//    m_bRawToRGB = FALSE;
     m_bRGBSave = FALSE;
 
     // 内存分配
@@ -174,6 +176,18 @@ void MVCCamera::createActions()
     bwAction->setStatusTip("黑白/彩色显示切换");
     connect(bwAction,&QAction::triggered,\
             this,&MVCCamera::onBwActionTriggered);
+
+    // 采集图像
+    capFrame = new QAction(QIcon(":/icon/buhuo.png"),tr("捕获连续帧"),this);
+    capFrame->setStatusTip("在触发模式下，进行连续帧的捕获");
+    connect(capFrame,&QAction::triggered,\
+            this,&MVCCamera::onCapFrameTriggered);
+
+    stopCapImg = new QAction(tr("停止采集"),this);
+    stopCapImg->setEnabled(false);
+    stopCapImg->setStatusTip("触发模式下，停止采集");
+    connect(stopCapImg,&QAction::triggered,\
+            this,&MVCCamera::onStopCapImgTriggered);
 }
 
 void MVCCamera::createMenus()
@@ -198,6 +212,10 @@ void MVCCamera::createMenus()
     VideoOperation->addAction(bwAction);
     VideoOperation->addSeparator();
     VideoOperation->addAction(GammaCorrection);
+
+    QMenu *CapOperation = menuBar()->addMenu(tr("采集图像"));
+    CapOperation->addAction(capFrame);
+    CapOperation->addAction(stopCapImg);
 }
 
 void MVCCamera::createTools()
@@ -210,6 +228,9 @@ void MVCCamera::createTools()
     QToolBar *VideoTool = addToolBar(tr("视频"));
     VideoTool->addAction(bwAction);
     VideoTool->addAction(GammaCorrection);
+    VideoTool->addSeparator();
+    VideoTool->addAction(capFrame);
+    VideoTool->addAction(stopCapImg);
 }
 
 void MVCCamera::InitImageParam()
@@ -236,76 +257,6 @@ void MVCCamera::InitImageParam()
 
     m_AutoEx.m_CapInfo = m_CapInfo;
     m_AutoWB.m_CapInfo = m_CapInfo;
-}
-
-int MVCCamera::FrameCallBackFunc(BYTE *pBGR)
-{
-    // 保存为Bmp文件
-    if (m_bRGBSave) {
-        saveRGBAsBmp(pBGR, "RGBData.bmp", m_CapInfo.Width,m_CapInfo.Height);
-        m_bRGBSave=FALSE;
-    }
-
-    return 0;
-}
-
-int MVCCamera::saveRGBAsBmp(BYTE *pSrc, QString FileName, DWORD dwWidth, DWORD dwHeight)
-{
-    FILE *fp;
-    BITMAPFILEHEADER pf;
-    BITMAPINFOHEADER FrameBmi;
-
-    if(pSrc == NULL)
-        return 0;
-
-    DWORD Width = dwWidth;
-    DWORD Height = dwHeight;
-    DWORD RowLength;
-    RowLength=4*((Width*24+31)/32);
-
-    DWORD RGBFrameSize= RowLength*Height;
-
-    FrameBmi.biSize=sizeof(BITMAPINFOHEADER);
-    FrameBmi.biPlanes=1;
-    FrameBmi.biCompression=BI_RGB;
-    FrameBmi.biClrImportant=0;
-    FrameBmi.biSizeImage=0;
-    FrameBmi.biClrUsed=0;//use biBitCount value
-    FrameBmi.biBitCount=24;
-    FrameBmi.biWidth=Width;
-    FrameBmi.biHeight=Height;
-    FrameBmi.biXPelsPerMeter = 0;
-    FrameBmi.biYPelsPerMeter =0;
-
-    QByteArray FileName_ = FileName.toLocal8Bit();
-    fp = fopen(FileName_.data(), "wb");
-    if (fp == NULL){
-        QMessageBox msgBox;
-        msgBox.setText("ERROR: 创建文件出现错误！");
-        msgBox.exec();
-        return -1;
-    }
-
-    pf.bfType=0x4d42; //"BM"
-    pf.bfSize=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER)+RGBFrameSize;
-    pf.bfOffBits=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER);
-    pf.bfReserved1=0;
-    pf.bfReserved2=0;
-
-    RGBQUAD *pPallete = (RGBQUAD*)malloc(256*sizeof(RGBQUAD));
-    for(int i=0 ; i<256; i++){
-        pPallete[i].rgbRed = (BYTE)i;
-        pPallete[i].rgbBlue = (BYTE)i;
-        pPallete[i].rgbGreen = (BYTE)i;
-        pPallete[i].rgbReserved = (BYTE)0;
-    }
-    fwrite(&pf,sizeof(BYTE), sizeof(BITMAPFILEHEADER), fp);
-    fwrite(&FrameBmi,sizeof(BYTE), sizeof(BITMAPINFOHEADER), fp);
-    fwrite(pSrc,sizeof(BYTE),RGBFrameSize,fp);
-    fclose(fp);
-    free(pPallete);
-
-    return 0;
 }
 
 void CALLBACK AWBFunction(LPVOID pParam)
@@ -346,28 +297,14 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
     // 保存Raw数据
     if(pMVCCamera->m_bRawSave)
     {
-        // 保存操作
-        FILE * fp;
-        fp = fopen("RawData.raw", "wb+");
-        if(fp)
-            fwrite(pDataBuffer,sizeof(BYTE),\
-                   pMVCCamera->m_CapInfo.Width*pMVCCamera->m_CapInfo.Height,\
-                   fp);
-        fclose(fp);
-        pMVCCamera->m_bRawSave = FALSE;
-    }
+        pMVCCamera->m_imgCount++;
+        QString fileName = QString("gray%1").arg(pMVCCamera->m_imgCount);
+        fileName = fileName + ".bmp";
 
-    // 转换为RGB数据，以便后续操作
-    if (pMVCCamera->m_bRawToRGB)
-    {
-        MV_Usb2ConvertRawToRgb(pMVCCamera->m_hMVC3000,pDataBuffer,\
-                               pMVCCamera->m_CapInfo.Width,\
-                               pMVCCamera->m_CapInfo.Height,\
-                               pMVCCamera->m_pRGBData);
-        pMVCCamera->saveRGBAsBmp(pMVCCamera->m_pRGBData, "RawToRGBData.bmp",\
-                               pMVCCamera->m_CapInfo.Width,\
-                               pMVCCamera->m_CapInfo.Height);
-        pMVCCamera->m_bRawToRGB = FALSE;
+        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,\
+                            pMVCCamera->m_CapInfo.Height,\
+                            QImage::Format_Grayscale8);
+        img.save(fileName);
     }
 }
 
@@ -376,7 +313,18 @@ void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
     BYTE *pDataBuffer = (BYTE*)lpParam;
     MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
 
-    pMVCCamera->FrameCallBackFunc(pDataBuffer);
+    // 保存为Bmp文件
+    if (pMVCCamera->m_bRGBSave)
+    {
+        pMVCCamera->m_imgCount++;
+        QString fileName = QString("RGB%1").arg(pMVCCamera->m_imgCount);
+        fileName = fileName + ".bmp";
+
+        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,\
+                            pMVCCamera->m_CapInfo.Height,\
+                            QImage::Format_RGB888);
+        img.save(fileName);
+    }
 }
 
 void MVCCamera::onConnectActionTriggered()
@@ -414,17 +362,19 @@ void MVCCamera::onConnectActionTriggered()
     m_AutoEx.m_hMVC3000 = m_hMVC3000;
     m_AutoWB.m_hMVC3000 = m_hMVC3000;
 
+    // 默认状态
     emit onContinueModeTriggered();
 
     // 设置回调函数
     MV_Usb2SetAwbCallBackFunction(m_hMVC3000,180,180,180,\
-                                  reinterpret_cast<LPVOID>(AWBFunction),&gGains);  // 自动白平衡
+                                  reinterpret_cast<LPVOID>(AWBFunction),&gGains);   // 自动白平衡
     MV_Usb2SetAeCallBackFunction(m_hMVC3000,180,\
-                                 reinterpret_cast<LPVOID>(AEFunction),&gExposure);         // 自动曝光操作
+                                 reinterpret_cast<LPVOID>(AEFunction),&gExposure);  // 自动曝光操作
 
     MV_Usb2SetRawCallBack(m_hMVC3000,RawCallBack,this);
     MV_Usb2SetFrameCallBack(m_hMVC3000,FrameCallBack,this);
 
+    // 其它操作
     MV_Usb2SetImageProcess(m_hMVC3000,m_nBrightness,m_nContrast,0,m_nSaturation,TRUE);
     ui->statusBar->showMessage("USB相机初始化成功");
 }
@@ -623,6 +573,39 @@ void MVCCamera::onBwActionTriggered()
     }
 
     MV_Usb2SetBw(m_hMVC3000,m_bBw);
+}
+
+void MVCCamera::onCapFrameTriggered()
+{
+    if(m_nOpMode)
+    {
+        // 将采集帧数清为零
+        m_imgCount = 0;
+
+        if(m_bBw)
+        {
+            // 为真时，黑白图像
+            m_bRawSave = TRUE;
+            m_bRGBSave = FALSE;
+        }
+        else
+        {
+            // 为假时，彩色图像
+            m_bRawSave = FALSE;
+            m_bRGBSave = TRUE;
+        }
+
+        capFrame->setEnabled(false);
+        stopCapImg->setEnabled(true);
+    }
+}
+
+void MVCCamera::onStopCapImgTriggered()
+{
+    m_bRawSave = FALSE;
+    m_bRGBSave = FALSE;
+    capFrame->setEnabled(true);
+    stopCapImg->setEnabled(false);
 }
 
 void MVCCamera::closeEvent(QCloseEvent *event)

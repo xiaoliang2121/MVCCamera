@@ -6,5 +6,6 @@
         <file>icon/stop.ico</file>
         <file>icon/bwShow.png</file>
         <file>icon/colorcorrect.png</file>
+        <file>icon/buhuo.png</file>
     </qresource>
 </RCC>

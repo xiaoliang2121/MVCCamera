@@ -30,9 +30,6 @@ public:
     void createMenus();
     void createTools();
     void InitImageParam();
-    int FrameCallBackFunc(BYTE *pBGR);
-    int saveRGBAsBmp(BYTE * pSrc, QString FileName,\
-                     DWORD dwWidth, DWORD dwHeight);
 
 public:
     HANDLE m_hMVC3000;
@@ -51,7 +48,7 @@ public:
     BOOL m_bBw;
     // 标志位
     BOOL m_bRawSave;
-    BOOL m_bRawToRGB;
+//    BOOL m_bRawToRGB;
     BOOL m_bRGBSave;
 
     // 自动曝光和自动白平衡线程
@@ -59,6 +56,9 @@ public:
     WorkThread m_WBOnWork;
     AutoExposure m_AutoEx;
     AutoWhiteBalance m_AutoWB;
+
+    // 帧采集数
+    uint m_imgCount;
 
 public slots:
     void onConnectActionTriggered();
@@ -76,6 +76,9 @@ public slots:
     void onAutoWhiteBalanceTriggered();
     void onGammaCorrectionTriggered();
     void onBwActionTriggered();
+
+    void onCapFrameTriggered();
+    void onStopCapImgTriggered();
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -107,6 +110,9 @@ private:
     QAction *autoWhiteBalance;
     QAction *GammaCorrection;
     QAction *bwAction;
+
+    QAction *capFrame;
+    QAction *stopCapImg;
 };
 
 #endif // MVCCAMERA_H
