@@ -183,7 +183,7 @@ void MVCCamera::createActions()
     connect(capFrame,&QAction::triggered,\
             this,&MVCCamera::onCapFrameTriggered);
 
-    stopCapImg = new QAction(tr("停止采集"),this);
+    stopCapImg = new QAction(QIcon(":/icon/stopimg.png"),tr("停止采集"),this);
     stopCapImg->setEnabled(false);
     stopCapImg->setStatusTip("触发模式下，停止采集");
     connect(stopCapImg,&QAction::triggered,\
