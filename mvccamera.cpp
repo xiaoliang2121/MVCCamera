@@ -7,6 +7,7 @@
 #include "aboutdlg.h"
 #include "trigsettingsdlg.h"
 #include "gammavalset.h"
+#include <QDebug>
 
 static LONG gGains;
 static LONG gExposure;
@@ -242,8 +243,8 @@ void MVCCamera::InitImageParam()
     m_CapInfo.Height	= 600;
     m_CapInfo.HorizontalOffset = 0;
     m_CapInfo.VerticalOffset   = 0;
-    m_CapInfo.Exposure         = 100;
-    m_CapInfo.Gain[0]          = 17;
+    m_CapInfo.Exposure         = 200;
+    m_CapInfo.Gain[0]          = 13;
     m_CapInfo.Gain[1]          = 9;
     m_CapInfo.Gain[2]          = 15;
     m_CapInfo.Control          = 0;
@@ -273,6 +274,10 @@ void CALLBACK AWBFunction(LPVOID pParam)
     gMVC->m_CapInfo.Gain[0] = gGains & 0xff;
     gMVC->m_CapInfo.Gain[1] = (gGains >> 8) & 0xff;
     gMVC->m_CapInfo.Gain[2] = (gGains >> 16) & 0xff;
+
+    qDebug()<<"增益"<<"("<<gMVC->m_CapInfo.Gain[0]<<","\
+           <<gMVC->m_CapInfo.Gain[1]<<","\
+          <<gMVC->m_CapInfo.Gain[2]<<")"<<endl;
 }
 
 void CALLBACK AEFunction(LPVOID pParam)
@@ -287,6 +292,7 @@ void CALLBACK AEFunction(LPVOID pParam)
 
     // 更新m_CapInfo中参数
     gMVC->m_CapInfo.Exposure = gExposure;
+    qDebug()<<"曝光"<<gMVC->m_CapInfo.Exposure<<endl;
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
@@ -305,6 +311,7 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
                             pMVCCamera->m_CapInfo.Height,\
                             QImage::Format_Grayscale8);
         img.save(fileName);
+        qDebug()<<"保存图片"<<fileName<<endl;
     }
 }
 
@@ -324,6 +331,7 @@ void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
                             pMVCCamera->m_CapInfo.Height,\
                             QImage::Format_RGB888);
         img.save(fileName);
+        qDebug()<<"保存图片"<<fileName<<endl;
     }
 }
 
