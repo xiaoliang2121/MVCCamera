@@ -300,6 +300,9 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
     BYTE *pDataBuffer = (BYTE *)lpParam;
     MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
 
+    if(pMVCCamera->m_nOpMode == 0)
+        return;
+
     // 保存Raw数据
     if(pMVCCamera->m_bRawSave)
     {
@@ -319,6 +322,9 @@ void CALLBACK FrameCallBack(LPVOID lpParam, LPVOID lpUser)
 {
     BYTE *pDataBuffer = (BYTE*)lpParam;
     MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
+
+    if(pMVCCamera->m_nOpMode == 0)
+        return;
 
     // 保存为Bmp文件
     if (pMVCCamera->m_bRGBSave)
