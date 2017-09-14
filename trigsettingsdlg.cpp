@@ -1,5 +1,6 @@
 ﻿#include "trigsettingsdlg.h"
 #include "ui_trigsettingsdlg.h"
+#include <QDebug>
 
 TrigSettingsDlg::TrigSettingsDlg(QWidget *parent) :
     QDialog(parent),
@@ -30,12 +31,22 @@ void TrigSettingsDlg::on_checkBox_TrigUpOrDown_stateChanged(int arg1)
     if(Qt::Checked == arg1)
     {
         m_bTrigPolarity = 1;
+        qDebug()<<"选中了"<<endl;
     }
     else if(Qt::Unchecked == arg1)
     {
         m_bTrigPolarity = 0;
+        qDebug()<<"取消选择"<<endl;
     }
-     MV_Usb2SetSignalPolarity(m_hMVC3000,m_bTrigPolarity,0);
+    int rt = MV_Usb2SetSignalPolarity(m_hMVC3000,m_bTrigPolarity,0);
+    if(rt == 0)
+    {
+     qDebug()<<"设置成功"<<endl;
+    }
+    else
+    {
+     qDebug()<<"设置失败"<<endl;
+    }
 }
 
 void TrigSettingsDlg::on_pushButton_SetPalse_clicked()
