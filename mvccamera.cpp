@@ -85,7 +85,7 @@ MVCCamera::~MVCCamera()
 
     // 释放malloc开辟的内存
     free(m_pRGBData);
-    free(m_pRawData);
+    //free(m_pRawData);
 
     for(int i=0;i<m_pRawDataVec.size();++i)
         free(m_pRawDataVec[i]);
@@ -310,7 +310,7 @@ void CALLBACK AEFunction(LPVOID pParam)
 
     // 更新m_CapInfo中参数
 //    gMVC->m_CapInfo.Exposure = gExposure;
-    qDebug()<<"曝光"<<gMVC->m_CapInfo.Exposure<<endl;
+    qDebug()<<"曝光"<<gExposure/*gMVC->m_CapInfo.Exposure*/<<endl;
 }
 
 void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
@@ -328,14 +328,14 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
         pMVCCamera->m_imgCount++;
         pMVCCamera->m_CapInfo.Buffer = pMVCCamera->m_pRawDataVec.at\
                 (pMVCCamera->m_imgCount);
-        MV_Usb2SetPartOfCapInfo(pMVCCamera->m_hMVC3000,\
+        MV_Usb2SetPartOfCapInfo(pMVCCamera->m_hMVC3000,
                                 &(pMVCCamera->m_CapInfo));
 
         QString fileName = QString("gray%1").arg(pMVCCamera->m_imgCount);
         fileName = fileName + ".bmp";
 
-//        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,\
-//                            pMVCCamera->m_CapInfo.Height,\
+//        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,
+//                            pMVCCamera->m_CapInfo.Height,
 //                            QImage::Format_Grayscale8);
 //        img.save(fileName);
         qDebug()<<"保存图片"<<fileName<<endl;

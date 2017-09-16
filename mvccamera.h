@@ -41,7 +41,7 @@ public:
 
     QVector<uchar*> m_pRawDataVec;  // 用于存放raw数据的指针
     BYTE* m_pRGBData;               // 24bitRGB数据指针
-    BYTE* m_pRawData;               // 用于存放RawData数据
+    //BYTE* m_pRawData;               // 用于存放RawData数据
     ULONG  m_nDeviceNum;            // 当前连接的相机数量
     QString m_strDeviceNum;
     DWORD MAXWIDTH;
