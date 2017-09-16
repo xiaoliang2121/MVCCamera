@@ -12,6 +12,8 @@
 #include "autoexposure.h"
 #include "autowhitebalance.h"
 
+#define CAPIMGNUM 50
+
 namespace Ui {
 class MVCCamera;
 }
@@ -36,12 +38,15 @@ public:
     CapInfoStruct m_CapInfo;        // 视频属性
     int m_nOpMode;                  // 模式[连续或者触发]
     BOOL m_bConnect;
+
+    QVector<uchar*> m_pRawDataVec;  // 用于存放raw数据的指针
     BYTE* m_pRGBData;               // 24bitRGB数据指针
     BYTE* m_pRawData;               // 用于存放RawData数据
     ULONG  m_nDeviceNum;            // 当前连接的相机数量
     QString m_strDeviceNum;
     DWORD MAXWIDTH;
     DWORD MAXHEIGHT;
+    uint m_CapImgNum;
     int m_nBrightness, m_nContrast,m_nSaturation;       // 亮度、对比度、饱和度
     BOOL m_bPreview;
     BOOL m_bPause;

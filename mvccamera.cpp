@@ -44,6 +44,7 @@ MVCCamera::MVCCamera(QWidget *parent) :
     // MVC3000F相机
     MAXWIDTH=2048;
     MAXHEIGHT=1536;
+    m_CapImgNum = CAPIMGNUM;       // 暂定要采集图像50张，开辟50块图像内存，指向内存的指针存在Vector中
     m_nBrightness= 0;
     m_nContrast	 = 20;
     m_nSaturation= 100;
@@ -59,9 +60,19 @@ MVCCamera::MVCCamera(QWidget *parent) :
     m_pRGBData = (BYTE*)malloc(RGBDataSize*sizeof(BYTE));
     memset(m_pRGBData,0,RGBDataSize);
     DWORD RawDataSize = MAXWIDTH*MAXHEIGHT;
-    m_pRawData=(BYTE*)malloc(RawDataSize*sizeof(BYTE));
-    memset(m_pRawData,0,RawDataSize);
+//    m_pRawData=(BYTE*)malloc(RawDataSize*sizeof(BYTE));
+//    memset(m_pRawData,0,RawDataSize);
 //    m_CapInfo.Buffer = m_pRawData;
+
+    // 各开辟50块图像内存，指向内存的指针存在Vector中
+
+    for(uint i=0;i<m_CapImgNum;++i)
+    {
+        uchar *pTemp = (uchar*)malloc(RawDataSize*sizeof(uchar));
+        memset(pTemp,0,RawDataSize);
+        m_pRawDataVec.push_back(pTemp);
+    }
+
     InitImageParam();
 
     // 顶层菜单设置
@@ -71,6 +82,13 @@ MVCCamera::MVCCamera(QWidget *parent) :
 MVCCamera::~MVCCamera()
 {
     delete ui;
+
+    // 释放malloc开辟的内存
+    free(m_pRGBData);
+    free(m_pRawData);
+
+    for(int i=0;i<m_pRawDataVec.size();++i)
+        free(m_pRawDataVec[i]);
 }
 
 void MVCCamera::setTopMenu()
@@ -237,13 +255,13 @@ void MVCCamera::createTools()
 void MVCCamera::InitImageParam()
 {
     memset(&m_CapInfo, 0, sizeof(CapInfoStruct));
-    m_CapInfo.Buffer = m_pRawData;
+    m_CapInfo.Buffer = m_pRawDataVec[0];
 
     m_CapInfo.Width		= 800;
     m_CapInfo.Height	= 600;
     m_CapInfo.HorizontalOffset = 0;
     m_CapInfo.VerticalOffset   = 0;
-    m_CapInfo.Exposure         = 200;
+    m_CapInfo.Exposure         = 150;           // 设置触发模式下，曝光时间为15ms
     m_CapInfo.Gain[0]          = 13;
     m_CapInfo.Gain[1]          = 9;
     m_CapInfo.Gain[2]          = 15;
@@ -291,7 +309,7 @@ void CALLBACK AEFunction(LPVOID pParam)
     emit gMVC->AeTriggered(gExposure);
 
     // 更新m_CapInfo中参数
-    gMVC->m_CapInfo.Exposure = gExposure;
+//    gMVC->m_CapInfo.Exposure = gExposure;
     qDebug()<<"曝光"<<gMVC->m_CapInfo.Exposure<<endl;
 }
 
@@ -299,6 +317,7 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
 {
     BYTE *pDataBuffer = (BYTE *)lpParam;
     MVCCamera *pMVCCamera = (MVCCamera *)lpUser;
+    Q_UNUSED(pDataBuffer);      // 这里图像已经在开辟的内存中了，留待使用
 
     if(pMVCCamera->m_nOpMode == 0)
         return;
@@ -307,13 +326,18 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
     if(pMVCCamera->m_bRawSave)
     {
         pMVCCamera->m_imgCount++;
+        pMVCCamera->m_CapInfo.Buffer = pMVCCamera->m_pRawDataVec.at\
+                (pMVCCamera->m_imgCount);
+        MV_Usb2SetPartOfCapInfo(pMVCCamera->m_hMVC3000,\
+                                &(pMVCCamera->m_CapInfo));
+
         QString fileName = QString("gray%1").arg(pMVCCamera->m_imgCount);
         fileName = fileName + ".bmp";
 
-        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,\
-                            pMVCCamera->m_CapInfo.Height,\
-                            QImage::Format_Grayscale8);
-        img.save(fileName);
+//        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,\
+//                            pMVCCamera->m_CapInfo.Height,\
+//                            QImage::Format_Grayscale8);
+//        img.save(fileName);
         qDebug()<<"保存图片"<<fileName<<endl;
     }
 }
@@ -521,6 +545,9 @@ void MVCCamera::onTrigModeTriggered()
         msgBox.setWindowTitle("提示");
         msgBox.exec();
     }
+
+    // 触发模式下的参数更新
+    MV_Usb2SetPartOfCapInfo(m_hMVC3000,&m_CapInfo);
 }
 
 void MVCCamera::onTrigModeSettingsTriggered()
@@ -533,6 +560,10 @@ void MVCCamera::onTrigModeSettingsTriggered()
 
 void MVCCamera::onAutoExposureTriggered()
 {
+    // 只在连续模式下使用,调节相机参数
+    if(m_nOpMode != 0)
+        return;
+
     int rt = MV_Usb2AutoExposure(m_hMVC3000,TRUE,180,\
                         reinterpret_cast<LPVOID>(AEFunction),&gExposure);
     if(ResSuccess != rt)
@@ -547,6 +578,10 @@ void MVCCamera::onAutoExposureTriggered()
 
 void MVCCamera::onAutoWhiteBalanceTriggered()
 {
+    // 只在连续模式下使用,调节相机参数
+    if(m_nOpMode != 0)
+        return;
+
     int rt = MV_Usb2AWB(m_hMVC3000,TRUE,180,180,180,\
                reinterpret_cast<LPVOID>(AWBFunction),&gGains);
     if(ResSuccess != rt)
