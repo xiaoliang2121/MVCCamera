@@ -334,10 +334,10 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
         QString fileName = QString("gray%1").arg(pMVCCamera->m_imgCount);
         fileName = fileName + ".bmp";
 
-//        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,
-//                            pMVCCamera->m_CapInfo.Height,
-//                            QImage::Format_Grayscale8);
-//        img.save(fileName);
+        QImage img = QImage(pDataBuffer,pMVCCamera->m_CapInfo.Width,
+                            pMVCCamera->m_CapInfo.Height,
+                            QImage::Format_Grayscale8);
+        img.save(fileName);
         qDebug()<<"保存图片"<<fileName<<endl;
     }
 }
