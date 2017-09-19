@@ -573,6 +573,9 @@ void MVCCamera::onSoftTrigTriggered()
         msgBox.setWindowTitle("提示");
         msgBox.exec();
     }
+
+    // 一次采集只用一次
+    softTrigger->setEnabled(false);
 }
 
 void MVCCamera::onTrigModeSettingsTriggered()
@@ -687,6 +690,7 @@ void MVCCamera::onStopCapImgTriggered()
     m_imgCount = 0; // 清零
 
     capFrame->setEnabled(true);
+    softTrigger->setEnabled(true);
     stopCapImg->setEnabled(false);
 }
 
