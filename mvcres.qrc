@@ -8,5 +8,6 @@
         <file>icon/colorcorrect.png</file>
         <file>icon/buhuo.png</file>
         <file>icon/stopimg.png</file>
+        <file>icon/start_GetImg.png</file>
     </qresource>
 </RCC>

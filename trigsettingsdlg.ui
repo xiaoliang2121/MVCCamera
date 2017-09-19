@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>200</height>
+    <height>399</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -82,7 +82,7 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="lineEdit_SetPalse">
        <property name="text">
-        <string>1000</string>
+        <string>10</string>
        </property>
       </widget>
      </item>
@@ -96,14 +96,14 @@
      <item row="0" column="2">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>（us）</string>
+        <string>（100us）</string>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>（us）</string>
+        <string>（100us）</string>
        </property>
       </widget>
      </item>
@@ -113,8 +113,8 @@
   <widget class="QPushButton" name="pushButton_Ok">
    <property name="geometry">
     <rect>
-     <x>290</x>
-     <y>170</y>
+     <x>300</x>
+     <y>360</y>
      <width>75</width>
      <height>21</height>
     </rect>
@@ -123,24 +123,169 @@
     <string>确定</string>
    </property>
   </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>200</y>
+     <width>361</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>闪光灯信号设置</string>
+   </property>
+   <widget class="QWidget" name="gridLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>341</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEdit_FlashWidth">
+       <property name="text">
+        <string>500</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>闪光灯脉冲宽度（us）：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>（us）</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>（us）</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEdit_FlashDelay">
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>闪光灯信号延迟（us）：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QPushButton" name="pushButton_FlashWidth">
+       <property name="text">
+        <string>设置</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QPushButton" name="pushButton_FlashDelay">
+       <property name="text">
+        <string>设置</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_FlashUpOrDown">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>170</y>
+     <width>171</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>闪光灯信号高有效/低有效</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>320</y>
+     <width>341</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>触发模式曝光时间：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEdit_SetExposure">
+      <property name="maximumSize">
+       <size>
+        <width>50</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>150</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>（100us）</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
  </widget>
+ <tabstops>
+  <tabstop>checkBox_TrigUpOrDown</tabstop>
+  <tabstop>lineEdit_SetPalse</tabstop>
+  <tabstop>pushButton_SetPalse</tabstop>
+  <tabstop>lineEdit_DelayToAct</tabstop>
+  <tabstop>pushButton_DelayToAct</tabstop>
+  <tabstop>checkBox_FlashUpOrDown</tabstop>
+  <tabstop>lineEdit_FlashWidth</tabstop>
+  <tabstop>pushButton_FlashWidth</tabstop>
+  <tabstop>lineEdit_FlashDelay</tabstop>
+  <tabstop>pushButton_FlashDelay</tabstop>
+  <tabstop>pushButton_Ok</tabstop>
+ </tabstops>
  <resources/>
- <connections>
-  <connection>
-   <sender>pushButton_Ok</sender>
-   <signal>clicked()</signal>
-   <receiver>TrigSettingsDlg</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>308</x>
-     <y>181</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>219</x>
-     <y>179</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

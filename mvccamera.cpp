@@ -165,6 +165,12 @@ void MVCCamera::createActions()
     connect(trigMode,&QAction::triggered,\
             this,&MVCCamera::onTrigModeTriggered);
 
+    softTrigger = new QAction(QIcon(":/icon/start_GetImg.png"),tr("开始采集"),this);
+    softTrigger->setStatusTip("在触发模式下，通过软件发送触发信号给摄像头，"
+                              "采集一帧图像（这里用于启动整个采集工作）");
+    connect(softTrigger,&QAction::triggered,\
+            this,&MVCCamera::onSoftTrigTriggered);
+
     trigModeSettings = new QAction(QIcon(":/icon/param.ICO"),tr("触发设置"),this);
     trigModeSettings->setStatusTip("触发模式下的参数设置");
     connect(trigModeSettings,&QAction::triggered,\
@@ -222,6 +228,7 @@ void MVCCamera::createMenus()
     ModeSelection->addAction(continueMode);
     ModeSelection->addAction(trigMode);
     ModeSelection->addSeparator();
+    ModeSelection->addAction(softTrigger);
     ModeSelection->addAction(trigModeSettings);
 
     QMenu *VideoOperation = menuBar()->addMenu(tr("视频"));
@@ -249,6 +256,7 @@ void MVCCamera::createTools()
     VideoTool->addAction(GammaCorrection);
     VideoTool->addSeparator();
     VideoTool->addAction(capFrame);
+    VideoTool->addAction(softTrigger);
     VideoTool->addAction(stopCapImg);
 }
 
@@ -329,7 +337,7 @@ void CALLBACK RawCallBack(LPVOID lpParam, LPVOID lpUser)
         pMVCCamera->m_CapInfo.Buffer = pMVCCamera->m_pRawDataVec.at\
                 (pMVCCamera->m_imgCount);
         MV_Usb2SetPartOfCapInfo(pMVCCamera->m_hMVC3000,
-                                &(pMVCCamera->m_CapInfo));
+                                &(pMVCCamera->m_CapInfo));      // 实际改变图片缓存位置
 
         QString fileName = QString("gray%1").arg(pMVCCamera->m_imgCount);
         fileName = fileName + ".bmp";
@@ -510,7 +518,7 @@ void MVCCamera::onContinueModeTriggered()
     }
 
     m_nOpMode = 0;
-    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE); // 连续模式时，不启用闪光信号
     if(rt != 0)
     {
         QMessageBox msgBox;
@@ -536,7 +544,7 @@ void MVCCamera::onTrigModeTriggered()
     }
 
     m_nOpMode = 1;
-    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,FALSE);
+    int rt = MV_Usb2SetOpMode(m_hMVC3000,m_nOpMode,TRUE);   // 触发模式，启用闪光信号
     if(rt != 0)
     {
         QMessageBox msgBox;
@@ -548,6 +556,23 @@ void MVCCamera::onTrigModeTriggered()
 
     // 触发模式下的参数更新
     MV_Usb2SetPartOfCapInfo(m_hMVC3000,&m_CapInfo);
+    emit onTrigModeSettingsTriggered();
+}
+
+void MVCCamera::onSoftTrigTriggered()
+{
+    if(!m_bConnect)
+        return;
+
+    int rt = MV_Usb2SendUserTrigger(m_hMVC3000);
+    if(rt != 0)
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("软触发执行失败");
+        msgBox.setWindowTitle("提示");
+        msgBox.exec();
+    }
 }
 
 void MVCCamera::onTrigModeSettingsTriggered()
@@ -555,6 +580,11 @@ void MVCCamera::onTrigModeSettingsTriggered()
     TrigSettingsDlg dlg;
     dlg.m_hMVC3000 = m_hMVC3000;
     dlg.m_bConnect = m_bConnect;
+    dlg.m_CapInfo = m_CapInfo;
+
+    connect(&dlg,&TrigSettingsDlg::updateExposure,\
+            this,&MVCCamera::on_Update_Exp);                        // 更新Exposure参数
+
     dlg.exec();
 }
 
@@ -658,6 +688,11 @@ void MVCCamera::onStopCapImgTriggered()
 
     capFrame->setEnabled(true);
     stopCapImg->setEnabled(false);
+}
+
+void MVCCamera::on_Update_Exp(ulong exp)
+{
+    m_CapInfo.Exposure = exp;
 }
 
 void MVCCamera::closeEvent(QCloseEvent *event)

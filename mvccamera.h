@@ -75,6 +75,7 @@ public slots:
 
     void onContinueModeTriggered();
     void onTrigModeTriggered();
+    void onSoftTrigTriggered();
     void onTrigModeSettingsTriggered();
 
     void onAutoExposureTriggered();
@@ -84,6 +85,8 @@ public slots:
 
     void onCapFrameTriggered();
     void onStopCapImgTriggered();
+
+    void on_Update_Exp(ulong exp);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -109,6 +112,7 @@ private:
     QAction *continueMode;
     QAction *trigMode;
     QAction *trigModeSettings;
+    QAction *softTrigger;
     QActionGroup *group;
 
     QAction *autoExposuse;
