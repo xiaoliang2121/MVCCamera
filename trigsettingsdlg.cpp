@@ -115,8 +115,8 @@ void TrigSettingsDlg::on_checkBox_FlashUpOrDown_stateChanged(int arg1)
 
 void TrigSettingsDlg::on_pushButton_Ok_clicked()
 {
-    emit on_checkBox_TrigUpOrDown_stateChanged(Qt::Checked);
-    emit on_checkBox_FlashUpOrDown_stateChanged(Qt::Checked);
+//    emit on_checkBox_TrigUpOrDown_stateChanged(Qt::Checked);
+//    emit on_checkBox_FlashUpOrDown_stateChanged(Qt::Checked);
     emit on_pushButton_SetPalse_clicked();
     emit on_pushButton_DelayToAct_clicked();
     emit on_pushButton_FlashWidth_clicked();
